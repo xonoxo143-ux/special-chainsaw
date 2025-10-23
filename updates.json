@@ -1,0 +1,8 @@
+{
+  "project": "Resonant World",
+  "version": "dev",
+  "timestamp": "__INIT__",
+  "notes": "Initialized updates feed.",
+  "build": {"id": "init", "branch": "main"},
+  "signature": "codex@local"
+}
