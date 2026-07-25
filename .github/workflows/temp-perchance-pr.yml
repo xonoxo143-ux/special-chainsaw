@@ -1,0 +1,46 @@
+name: Temporary Perchance PR extraction
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download offline-chat source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p perchance_offline_chat_raw/generator_sources/offline-chat perchance_offline_chat_raw/shell
+          curl --fail --location --retry 3 --max-time 120 \
+            'https://perchance.org/api/downloadGenerator?generatorName=offline-chat' \
+            --output perchance_offline_chat_raw/generator_sources/offline-chat/downloadGenerator.html
+          curl --fail --location --retry 3 --max-time 120 \
+            'https://perchance.org/api/downloadGenerator?generatorName=offline-chat&listsOnly=true' \
+            --output perchance_offline_chat_raw/generator_sources/offline-chat/downloadGenerator_listsOnly.txt
+          curl --fail --location --retry 3 --max-time 120 \
+            'https://perchance.org/offline-chat' \
+            --output perchance_offline_chat_raw/shell/offline-chat.html
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path('perchance_offline_chat_raw')
+          files=[]
+          for p in root.rglob('*'):
+              if p.is_file():
+                  b=p.read_bytes(); files.append({'path':str(p.relative_to(root)),'size_bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
+          (root/'REMOTE_FETCH_MANIFEST.json').write_text(json.dumps({'target':'offline-chat','files':files},indent=2))
+          PY
+          zip -qr perchance_offline_chat_raw.zip perchance_offline_chat_raw
+
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: perchance-offline-chat-raw
+          path: |
+            perchance_offline_chat_raw/
+            perchance_offline_chat_raw.zip
+          retention-days: 1
