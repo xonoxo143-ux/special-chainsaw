@@ -1,0 +1,120 @@
+name: Temporary Perchance source extraction
+
+on:
+  push:
+    branches:
+      - temp-perchance-relay-20260725
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download generator and imports
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, html, json, re, time, urllib.parse, urllib.request, zipfile
+          from collections import deque
+          from pathlib import Path
+
+          ROOT = Path('perchance_dump_offline-chat_v110_raw')
+          ROOT.mkdir(parents=True, exist_ok=True)
+          IMPORT_RE = re.compile(r'\{\s*import\s*:\s*([a-z0-9][a-z0-9-]{1,99})\s*\}', re.I)
+          SCRIPT = r'<script\b[^>]*\bid\s*=\s*([\"\'])%s\1[^>]*>(.*?)</script\s*>'
+          records = []
+          graph = {}
+          total = 0
+
+          opener = urllib.request.build_opener()
+          opener.addheaders = [('User-Agent', 'PerchanceSourceExtractor/1.1.0'), ('Accept-Encoding', 'identity')]
+
+          def fetch(url):
+              started = time.monotonic()
+              with opener.open(url, timeout=45) as r:
+                  data = r.read(50 * 1024 * 1024)
+                  return data, r.geturl(), getattr(r, 'status', 200), dict(r.headers), int((time.monotonic()-started)*1000)
+
+          def decode_block(page, ident):
+              m = re.search(SCRIPT % re.escape(ident), page, re.I|re.S)
+              if not m: return None
+              raw = m.group(2).strip()
+              for x in (raw, html.unescape(raw), urllib.parse.unquote(raw), urllib.parse.unquote(html.unescape(raw))):
+                  try: return json.loads(x)
+                  except Exception: pass
+              raise RuntimeError('Could not decode '+ident)
+
+          def save(rel, data):
+              global total
+              p = ROOT / rel
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_bytes(data)
+              total += len(data)
+              return str(rel)
+
+          queue = deque([('offline-chat', 0, None)])
+          seen = set()
+          while queue:
+              slug, depth, parent = queue.popleft()
+              if slug in seen or depth > 4: continue
+              seen.add(slug)
+              base = 'https://perchance.org/api/downloadGenerator?generatorName='+urllib.parse.quote(slug)
+              full = None
+              for url, filename, ctype in ((base, 'downloadGenerator.html', 'text/html'), (base+'&listsOnly=true', 'downloadGenerator_listsOnly.txt', 'text/plain')):
+                  rec = {'url':url, 'slug':slug, 'parent':parent, 'local_path':None, 'error':None}
+                  try:
+                      data, final, status, headers, elapsed = fetch(url)
+                      rec.update(status=status, final_url=final, content_type=headers.get('Content-Type'), size_bytes=len(data), sha256=hashlib.sha256(data).hexdigest(), elapsed_ms=elapsed)
+                      rec['local_path'] = save(Path('generator_sources')/slug/filename, data)
+                      if filename.endswith('.html'): full = data
+                  except Exception as e:
+                      rec['error'] = type(e).__name__+': '+str(e)
+                  records.append(rec)
+              if full is None: continue
+              page = full.decode('utf-8', 'replace')
+              pre = decode_block(page, 'preloaded-generator-data')
+              embedded = decode_block(page, 'imported-generators') or []
+              model = pre.get('modelText') or ''
+              output = pre.get('outputTemplate') or ''
+              imports = set(IMPORT_RE.findall(model+'\n'+output))
+              for x in pre.get('imports') or []:
+                  if isinstance(x, str): imports.add(x)
+                  elif isinstance(x, dict) and isinstance(x.get('name'), str): imports.add(x['name'])
+              for x in embedded:
+                  if isinstance(x, dict) and isinstance(x.get('name'), str): imports.add(x['name'])
+              imports = sorted(x.lower() for x in imports if re.fullmatch(r'[a-z0-9][a-z0-9-]{1,99}', x, re.I))
+              graph[slug] = imports
+              save(Path('generator_sources')/slug/'modelText.txt', model.encode())
+              save(Path('generator_sources')/slug/'outputTemplate.html', output.encode())
+              save(Path('generator_sources')/slug/'imports.json', (json.dumps(imports, indent=2)+'\n').encode())
+              save(Path('generator_sources')/slug/'metadata.json', (json.dumps({'name':pre.get('name') or slug,'isPrivate':bool(pre.get('isPrivate')),'modelTextCharacters':len(model),'outputTemplateCharacters':len(output),'imports':imports}, indent=2)+'\n').encode())
+              for child in imports:
+                  if child != slug and child not in seen: queue.append((child, depth+1, slug))
+
+          try:
+              shell, final, status, headers, elapsed = fetch('https://perchance.org/offline-chat')
+              save(Path('shell')/'offline-chat.html', shell)
+              records.append({'url':'https://perchance.org/offline-chat','status':status,'final_url':final,'size_bytes':len(shell),'sha256':hashlib.sha256(shell).hexdigest(),'elapsed_ms':elapsed,'local_path':'shell/offline-chat.html','error':None})
+          except Exception as e:
+              records.append({'url':'https://perchance.org/offline-chat','error':type(e).__name__+': '+str(e)})
+
+          manifest = {'tool':'Perchance Source Extractor remote runner','version':'1.1.0','target':'offline-chat','saved_generators':sorted(graph),'import_graph':graph,'record_count':len(records),'failed_record_count':sum(bool(x.get('error')) for x in records),'total_saved_bytes':total,'records':records}
+          (ROOT/'manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
+          (ROOT/'REPORT.md').write_text('# Offline Chat Extraction\n\nSaved generators: %d\n\nFailed requests: %d\n' % (len(graph), manifest['failed_record_count']), encoding='utf-8')
+          with zipfile.ZipFile('perchance_dump_offline-chat_v110_raw.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for p in ROOT.rglob('*'):
+                  if p.is_file(): z.write(p, p.as_posix())
+          print(json.dumps({'saved_generators':len(graph),'failed':manifest['failed_record_count'],'bytes':total}, indent=2))
+          if 'offline-chat' not in graph: raise SystemExit(2)
+          PY
+
+      - name: Upload extracted source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perchance-offline-chat-source
+          path: |
+            perchance_dump_offline-chat_v110_raw/
+            perchance_dump_offline-chat_v110_raw.zip
+          if-no-files-found: error
+          retention-days: 1
