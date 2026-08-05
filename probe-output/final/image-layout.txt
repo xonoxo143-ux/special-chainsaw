@@ -1,0 +1,35 @@
+label: dos
+label-id: 0x7d984bb5
+device: probe-output/final/HP-86F3-F58-Recovery.img
+unit: sectors
+sector-size: 512
+
+probe-output/final/HP-86F3-F58-Recovery.img1 : start=        2048, size=      194560, type=c, bootable
+
+ Volume in drive : is HPBIOS     
+ Volume Serial Number is 514E-F2DD
+Directory for ::/Hewlett-Packard/BIOS/Current
+
+.            <DIR>     2026-08-05  16:30 
+..           <DIR>     2026-08-05  16:30 
+086F3    bin  16777216 2026-08-05  16:30 
+086F3    sig       256 2026-08-05  16:30 
+086F3    b01  16777216 2026-08-05  16:30 
+086F3    s01       256 2026-08-05  16:30 
+        6 files          33 554 944 bytes
+                         30 951 424 bytes free
+
+
+ Volume in drive : is HPBIOS     
+ Volume Serial Number is 514E-F2DD
+Directory for ::/Hewlett-Packard/BIOS/New
+
+.            <DIR>     2026-08-05  16:30 
+..           <DIR>     2026-08-05  16:30 
+086F3    bin  16777216 2026-08-05  16:30 
+086F3    sig       256 2026-08-05  16:30 
+086F3    b01  16777216 2026-08-05  16:30 
+086F3    s01       256 2026-08-05  16:30 
+        6 files          33 554 944 bytes
+                         30 951 424 bytes free
+
