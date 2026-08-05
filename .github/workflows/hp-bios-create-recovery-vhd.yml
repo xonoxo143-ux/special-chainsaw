@@ -1,0 +1,143 @@
+name: HP Create Recovery USB VHD Probe
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  probe-recovery-media:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Check completion
+        id: check
+        shell: pwsh
+        run: |
+          if (Test-Path probe-output/recovery-vhd/complete.txt) { 'skip=true' >> $env:GITHUB_OUTPUT } else { 'skip=false' >> $env:GITHUB_OUTPUT }
+
+      - name: Create FAT32 VHD and run HP recovery path
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force probe-output/recovery-vhd, recovery-work, recovery-work/outer | Out-Null
+
+          $vhd = Join-Path $PWD 'recovery-work/hp-recovery.vhd'
+          $diskpart = @"
+          create vdisk file="$vhd" maximum=256 type=expandable
+          select vdisk file="$vhd"
+          attach vdisk
+          create partition primary
+          format fs=fat32 quick label=HPBIOS
+          assign letter=R
+          exit
+          "@
+          $diskpart | diskpart | Tee-Object -FilePath probe-output/recovery-vhd/diskpart.txt
+          Get-Disk | Format-Table Number,FriendlyName,BusType,PartitionStyle,OperationalStatus,Size -AutoSize | Out-File probe-output/recovery-vhd/disks.txt -Width 500
+          Get-Volume | Format-Table DriveLetter,FileSystemLabel,FileSystemType,Size,SizeRemaining,DriveType -AutoSize | Out-File probe-output/recovery-vhd/volumes-before.txt -Width 500
+
+          Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile recovery-work/sp172733.exe
+          & 'C:\Program Files\7-Zip\7z.exe' x -y '-orecovery-work\outer' recovery-work\sp172733.exe | Out-Null
+          $exe = (Get-ChildItem recovery-work\outer -Recurse -Filter '086F3F58.EXE' | Select-Object -First 1).FullName
+          if (-not $exe) { throw '086F3F58.EXE not found' }
+
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class NativeMouseRecovery {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
+            [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+          }
+          '@
+          function Root($p) {
+            $p.Refresh()
+            return [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          }
+          function Find-ByName($root, [string]$name) {
+            $c = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
+            return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c)
+          }
+          function Click-El($el, $hwnd) {
+            if (-not $el) { throw 'Element not found' }
+            $r = $el.Current.BoundingRectangle
+            $x = [int]($r.X + $r.Width / 2)
+            $y = [int]($r.Y + $r.Height / 2)
+            [NativeMouseRecovery]::SetForegroundWindow($hwnd) | Out-Null
+            Start-Sleep -Milliseconds 350
+            [NativeMouseRecovery]::SetCursorPos($x,$y) | Out-Null
+            [NativeMouseRecovery]::mouse_event(0x0002,0,0,0,[UIntPtr]::Zero)
+            [NativeMouseRecovery]::mouse_event(0x0004,0,0,0,[UIntPtr]::Zero)
+            Start-Sleep -Seconds 2
+          }
+          function Capture-UI($p, [string]$path) {
+            $root = Root $p
+            $rows = @()
+            if ($root) {
+              $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+              foreach ($el in $all) {
+                $c = $el.Current
+                $rows += [pscustomobject]@{Name=$c.Name; ControlType=$c.ControlType.ProgrammaticName; AutomationId=$c.AutomationId; ClassName=$c.ClassName; Enabled=$c.IsEnabled; Offscreen=$c.IsOffscreen; X=$c.BoundingRectangle.X; Y=$c.BoundingRectangle.Y; W=$c.BoundingRectangle.Width; H=$c.BoundingRectangle.Height}
+              }
+            }
+            $rows | Format-Table -AutoSize | Out-File $path -Width 900
+          }
+
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          $root = Root $p
+          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
+          $root = Root $p
+          Capture-UI $p 'probe-output/recovery-vhd/selection-screen.txt'
+          Click-El (Find-ByName $root 'Create Recovery USB flash drive') $p.MainWindowHandle
+          $root = Root $p
+          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
+          Start-Sleep -Seconds 5
+          Capture-UI $p 'probe-output/recovery-vhd/drive-screen.txt'
+
+          $root = Root $p
+          $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+          $candidate = $null
+          foreach ($el in $all) {
+            $name = $el.Current.Name
+            if ($name -match '(?i)R:|HPBIOS|256|MB') { $candidate = $el; break }
+          }
+          if ($candidate) {
+            Click-El $candidate $p.MainWindowHandle
+            $root = Root $p
+            $next = Find-ByName $root 'Next'
+            if ($next -and $next.Current.IsEnabled) {
+              Click-El $next $p.MainWindowHandle
+              Start-Sleep -Seconds 30
+            }
+          }
+
+          Capture-UI $p 'probe-output/recovery-vhd/final-ui.txt'
+          Get-Volume | Format-Table DriveLetter,FileSystemLabel,FileSystemType,Size,SizeRemaining,DriveType -AutoSize | Out-File probe-output/recovery-vhd/volumes-after.txt -Width 500
+          Get-ChildItem R:\ -Recurse -Force -ErrorAction SilentlyContinue | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output/recovery-vhd/files.txt -Width 900
+          if (Test-Path R:\) {
+            robocopy R:\ probe-output\recovery-vhd\usb-tree /E /COPY:DAT /R:1 /W:1 | Out-File probe-output/recovery-vhd/robocopy.txt
+          }
+          Get-Process 086F3F58 -ErrorAction SilentlyContinue | Stop-Process -Force
+          'complete' | Out-File probe-output/recovery-vhd/complete.txt
+
+      - name: Commit probe results
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output/recovery-vhd
+          git commit -m 'Probe HP Create Recovery USB path with FAT32 VHD'
+          git push origin HEAD:${{ github.head_ref }}
