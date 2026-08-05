@@ -7,13 +7,13 @@ I/O size (minimum/optimal): 512 bytes / 512 bytes
 
 >>> Script header accepted.
 >>> Script header accepted.
->>> Created a new DOS (MBR) disklabel with disk identifier 0xbd9a626a.
+>>> Created a new DOS (MBR) disklabel with disk identifier 0xc88a0709.
 /home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/HP-86F3-F41-Official-Recovery.img1: Created a new partition 1 of type 'W95 FAT32 (LBA)' and of size 255 MiB.
 /home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/HP-86F3-F41-Official-Recovery.img2: Done.
 
 New situation:
 Disklabel type: dos
-Disk identifier: 0xbd9a626a
+Disk identifier: 0xc88a0709
 
 Device                                                                                                  Boot Start    End Sectors  Size Id Type
 /home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/HP-86F3-F41-Official-Recovery.img1 *     2048 524287  522240  255M  c W95 FAT32 (LBA)
