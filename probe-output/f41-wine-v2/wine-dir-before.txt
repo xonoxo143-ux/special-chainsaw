@@ -1,0 +1,7 @@
+Volume in drive r is HPBIOS
+Volume Serial Number is 90c5-5944
+
+Directory of r:
+
+File not found.
+

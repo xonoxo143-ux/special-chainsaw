@@ -1,0 +1,28 @@
+fsck.fat 4.2 (2021-01-31)
+Checking we can access the last sector of the filesystem
+There are differences between boot sector and its backup.
+This is mostly harmless. Differences: (offset:original/backup)
+  65:01/00
+  Not automatically fixing this.
+Boot sector contents:
+System ID "mkfs.fat"
+Media byte 0xf8 (hard disk)
+       512 bytes per logical sector
+       512 bytes per cluster
+        32 reserved sectors
+First FAT starts at byte 16384 (sector 32)
+         2 FATs, 32 bit entries
+   2056704 bytes per FAT (= 4017 sectors)
+Root directory start at cluster 2 (arbitrary size)
+Data area starts at byte 4129792 (sector 8066)
+    514174 data clusters (263257088 bytes)
+32 sectors/track, 16 heads
+      2048 hidden sectors
+    522240 sectors total
+Checking for unused clusters.
+Dirty bit is set. Fs was not properly unmounted and some data may be corrupt.
+ Automatically removing dirty bit.
+Checking free cluster summary.
+
+Leaving filesystem unchanged.
+/dev/loop0p1: 1 files, 1/514174 clusters

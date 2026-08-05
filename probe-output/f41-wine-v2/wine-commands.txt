@@ -1,0 +1,8 @@
+wine is /usr/bin/wine
+wine is /bin/wine
+wineboot is /usr/bin/wineboot
+wineboot is /bin/wineboot
+wineserver is /usr/bin/wineserver
+wineserver is /bin/wineserver
+winepath is /usr/bin/winepath
+winepath is /bin/winepath

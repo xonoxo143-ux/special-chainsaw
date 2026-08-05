@@ -1,0 +1,18 @@
+
+7-Zip 23.01 (x64) : Copyright (c) 1999-2023 Igor Pavlov : 2023-06-20
+ 64-bit locale=C.UTF-8 Threads:4 OPEN_MAX:65536
+
+Scanning the drive for archives:
+1 file, 5306010 bytes (5182 KiB)
+
+Extracting archive: /home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/ahk.zip
+--
+Path = /home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/ahk.zip
+Type = zip
+Physical Size = 5306010
+
+Everything is Ok
+
+Files: 12
+Size:       8915511
+Compressed: 5306010

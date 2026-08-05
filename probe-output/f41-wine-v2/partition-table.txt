@@ -1,0 +1,7 @@
+label: dos
+label-id: 0xe8cfcd48
+device: /home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/HP-86F3-F41-Official-Recovery.img
+unit: sectors
+sector-size: 512
+
+/home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/HP-86F3-F41-Official-Recovery.img1 : start=        2048, size=      522240, type=c, bootable
