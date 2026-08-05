@@ -44,11 +44,29 @@ jobs:
           $condition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, 'Next')
           $next = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
           if (-not $next) { throw 'Next button not found' }
-          $invoke = $next.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-          $invoke.Invoke()
+          $rect = $next.Current.BoundingRectangle
+          $x = [int]($rect.X + $rect.Width / 2)
+          $y = [int]($rect.Y + $rect.Height / 2)
+
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class NativeMouse {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
+            [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+          }
+          '@
+          [NativeMouse]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
+          Start-Sleep -Milliseconds 500
+          [NativeMouse]::SetCursorPos($x, $y) | Out-Null
+          [NativeMouse]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
+          [NativeMouse]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+
           Start-Sleep -Seconds 6
           $p.Refresh()
           $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          if (-not $root) { throw 'HP utility window disappeared after Next' }
 
           $rows = @()
           $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
