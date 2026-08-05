@@ -81,8 +81,18 @@ jobs:
 
           $docs = [Environment]::GetFolderPath('MyDocuments')
           "Documents=$docs" | Out-File probe-output\step5-documents.txt
-          Get-ChildItem $docs -Recurse -Force -ErrorAction SilentlyContinue | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output\step5-files.txt -Width 900
-          Copy-Item "$docs\*" probe-output\exported-default -Recurse -Force -ErrorAction SilentlyContinue
+          $allFiles = Get-ChildItem $docs -Recurse -File -Force -ErrorAction SilentlyContinue
+          $allFiles | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output\step5-files.txt -Width 900
+          $biosFiles = $allFiles | Where-Object {
+            $_.Name -match '(?i)86F3|\.bin$|\.sig$|\.rom$|\.fd$' -or $_.DirectoryName -match '(?i)Hewlett-Packard|\\BIOS(\\|$)'
+          }
+          foreach ($f in $biosFiles) {
+            $relative = $f.FullName.Substring($docs.Length).TrimStart('\')
+            $dest = Join-Path 'probe-output\exported-default' $relative
+            New-Item -ItemType Directory -Force -Path (Split-Path $dest -Parent) | Out-Null
+            Copy-Item $f.FullName $dest -Force
+          }
+          $biosFiles | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output\step5-bios-files.txt -Width 900
 
           $p.Refresh()
           $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
