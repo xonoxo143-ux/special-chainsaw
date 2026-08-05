@@ -1,4 +1,4 @@
-name: HP BIOS Export Step 5
+name: HP BIOS Recovery Image Build
 
 on:
   pull_request:
@@ -8,10 +8,10 @@ permissions:
   contents: write
 
 jobs:
-  export-default:
+  build-image:
     if: github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: windows-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,100 +20,114 @@ jobs:
 
       - name: Check completion
         id: check
-        shell: pwsh
         run: |
-          if (Test-Path probe-output/step5-complete.txt) { 'skip=true' >> $env:GITHUB_OUTPUT } else { 'skip=false' >> $env:GITHUB_OUTPUT }
+          if [[ -f probe-output/final/HP-86F3-F58-Recovery.img.xz ]]; then
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'skip=false' >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Export BIOS files to Documents
+      - name: Install FAT32 tools
         if: steps.check.outputs.skip != 'true'
-        shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Force step5-work, step5-work\outer, probe-output, probe-output\exported-default | Out-Null
-          Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile step5-work\sp172733.exe
-          & 'C:\Program Files\7-Zip\7z.exe' x -y '-ostep5-work\outer' step5-work\sp172733.exe | Out-Null
-          $exe = (Get-ChildItem step5-work\outer -Recurse -Filter '086F3F58.EXE' | Select-Object -First 1).FullName
-          $p = Start-Process -FilePath $exe -PassThru
-          Start-Sleep -Seconds 8
-          $p.Refresh()
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dosfstools fdisk mtools xz-utils
 
-          Add-Type -AssemblyName UIAutomationClient
-          Add-Type -AssemblyName UIAutomationTypes
-          Add-Type @'
-          using System;
-          using System.Runtime.InteropServices;
-          public static class NativeMouse5 {
-            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
-            [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
-            [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
-          }
-          '@
-          function Root($proc) {
-            $proc.Refresh()
-            return [System.Windows.Automation.AutomationElement]::FromHandle($proc.MainWindowHandle)
-          }
-          function Find-ByName($root, [string]$name) {
-            $c = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
-            return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c)
-          }
-          function Click-El($el, $hwnd) {
-            if (-not $el) { throw 'Element not found' }
-            $r = $el.Current.BoundingRectangle
-            $x = [int]($r.X + $r.Width / 2)
-            $y = [int]($r.Y + $r.Height / 2)
-            [NativeMouse5]::SetForegroundWindow($hwnd) | Out-Null
-            Start-Sleep -Milliseconds 300
-            [NativeMouse5]::SetCursorPos($x,$y) | Out-Null
-            [NativeMouse5]::mouse_event(0x0002,0,0,0,[UIntPtr]::Zero)
-            [NativeMouse5]::mouse_event(0x0004,0,0,0,[UIntPtr]::Zero)
-            Start-Sleep -Seconds 2
-          }
-
-          $root = Root $p
-          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
-          $root = Root $p
-          Click-El (Find-ByName $root 'Copy') $p.MainWindowHandle
-          $root = Root $p
-          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
-          $root = Root $p
-          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
-          Start-Sleep -Seconds 25
-
-          $docs = [Environment]::GetFolderPath('MyDocuments')
-          "Documents=$docs" | Out-File probe-output\step5-documents.txt
-          $allFiles = Get-ChildItem $docs -Recurse -File -Force -ErrorAction SilentlyContinue
-          $allFiles | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output\step5-files.txt -Width 900
-          $biosFiles = $allFiles | Where-Object {
-            $_.Name -match '(?i)86F3|\.bin$|\.sig$|\.rom$|\.fd$' -or $_.DirectoryName -match '(?i)Hewlett-Packard|\\BIOS(\\|$)'
-          }
-          foreach ($f in $biosFiles) {
-            $relative = $f.FullName.Substring($docs.Length).TrimStart('\')
-            $dest = Join-Path 'probe-output\exported-default' $relative
-            New-Item -ItemType Directory -Force -Path (Split-Path $dest -Parent) | Out-Null
-            Copy-Item $f.FullName $dest -Force
-          }
-          $biosFiles | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output\step5-bios-files.txt -Width 900
-
-          $p.Refresh()
-          $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
-          if ($root) {
-            $rows = @()
-            $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
-            foreach ($el in $all) {
-              $c = $el.Current
-              $rows += [pscustomobject]@{Name=$c.Name; AutomationId=$c.AutomationId; ClassName=$c.ClassName; Enabled=$c.IsEnabled; X=$c.BoundingRectangle.X; Y=$c.BoundingRectangle.Y; W=$c.BoundingRectangle.Width; H=$c.BoundingRectangle.Height}
-            }
-            $rows | Format-Table -AutoSize | Out-File probe-output\step5-ui.txt -Width 900
-          }
-          Get-Process 086F3F58 -ErrorAction SilentlyContinue | Stop-Process -Force
-          'complete' | Out-File probe-output\step5-complete.txt
-
-      - name: Commit results
+      - name: Build and validate image
         if: steps.check.outputs.skip != 'true'
-        shell: pwsh
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC='probe-output/exported-default'
+          OUT='probe-output/final'
+          IMG="$OUT/HP-86F3-F58-Recovery.img"
+          mkdir -p "$OUT"
+
+          for f in 086F3.bin 086F3.sig 086F3.b01 086F3.s01; do
+            test -f "$SRC/$f" || { echo "Missing $SRC/$f" >&2; exit 1; }
+          done
+          test "$(stat -c %s "$SRC/086F3.bin")" -eq 16777216
+          test "$(stat -c %s "$SRC/086F3.b01")" -eq 16777216
+          test "$(stat -c %s "$SRC/086F3.sig")" -eq 256
+          test "$(stat -c %s "$SRC/086F3.s01")" -eq 256
+          sha256sum "$SRC"/086F3.* | tee "$OUT/exported-files.sha256"
+
+          IMAGE_MIB=256
+          START=2048
+          SECTOR=512
+          truncate -s "${IMAGE_MIB}M" "$IMG"
+          printf 'label: dos\nunit: sectors\n\nstart=%s, type=c, bootable\n' "$START" | sfdisk "$IMG"
+          TOTAL_BYTES=$((IMAGE_MIB * 1024 * 1024))
+          PART_BYTES=$((TOTAL_BYTES - START * SECTOR))
+          PART_KIB=$((PART_BYTES / 1024))
+          mkfs.vfat -F 32 -n HPBIOS --offset "$START" "$IMG" "$PART_KIB"
+
+          OFFSET=$((START * SECTOR))
+          export MTOOLS_SKIP_CHECK=1
+          for path in \
+            ::/Hewlett-Packard \
+            ::/Hewlett-Packard/BIOS \
+            ::/Hewlett-Packard/BIOS/Current \
+            ::/Hewlett-Packard/BIOS/New \
+            ::/HP \
+            ::/HP/BIOS \
+            ::/HP/BIOS/Current \
+            ::/HP/BIOS/New \
+            ::/EFI \
+            ::/EFI/HP \
+            ::/EFI/HP/BIOS \
+            ::/EFI/HP/BIOS/Current \
+            ::/EFI/HP/BIOS/New; do
+            mmd -i "$IMG@@$OFFSET" "$path"
+          done
+
+          for dir in \
+            ::/Hewlett-Packard/BIOS/Current \
+            ::/Hewlett-Packard/BIOS/New \
+            ::/HP/BIOS/Current \
+            ::/HP/BIOS/New \
+            ::/EFI/HP/BIOS/Current \
+            ::/EFI/HP/BIOS/New; do
+            for f in 086F3.bin 086F3.sig 086F3.b01 086F3.s01; do
+              mcopy -i "$IMG@@$OFFSET" "$SRC/$f" "$dir/"
+            done
+          done
+
+          cat > "$OUT/RECOVERY_INFO.txt" <<'INFO'
+HP BIOS recovery media
+Target: HP All-in-One 24-dp0014 / SSID 86F3
+BIOS: F.58
+SoftPaq: SP172733
+The signed files were exported by the official HP BIOS Update and Recovery Utility.
+INFO
+          mcopy -i "$IMG@@$OFFSET" "$OUT/RECOVERY_INFO.txt" ::/
+
+          {
+            echo 'Partition table:'
+            sfdisk -d "$IMG"
+            echo
+            echo 'Recovery folder:'
+            mdir -i "$IMG@@$OFFSET" ::/Hewlett-Packard/BIOS/Current
+            echo
+            echo 'Mirrored HP folder:'
+            mdir -i "$IMG@@$OFFSET" ::/HP/BIOS/Current
+            echo
+            echo 'Mirrored EFI folder:'
+            mdir -i "$IMG@@$OFFSET" ::/EFI/HP/BIOS/Current
+          } | tee "$OUT/image-layout.txt"
+
+          test "$(stat -c %s "$IMG")" -eq $((IMAGE_MIB * 1024 * 1024))
+          sha256sum "$IMG" | tee "$OUT/HP-86F3-F58-Recovery.img.sha256"
+          xz -T0 -9e --check=sha256 "$IMG"
+          sha256sum "$IMG.xz" | tee "$OUT/HP-86F3-F58-Recovery.img.xz.sha256"
+          test "$(stat -c %s "$IMG.xz")" -lt 100000000
+          ls -lh "$OUT"
+
+      - name: Commit final image
+        if: steps.check.outputs.skip != 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add probe-output
-          git commit -m 'Export HP BIOS files to default folder'
+          git add probe-output/final
+          git commit -m 'Add verified HP 86F3 F.58 recovery image'
           git push origin HEAD:${{ github.head_ref }}
