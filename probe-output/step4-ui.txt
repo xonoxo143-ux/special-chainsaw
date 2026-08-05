@@ -1,0 +1,12 @@
+
+Name                                                               AutomationId ClassName         Enabled      X      Y      W      H
+----                                                               ------------ ---------         -------      -      -      -      -
+086F3F58                                                                        #32770               True 374.00 310.00 292.00 159.00
+OK                                                                 2            Button               True 568.00 429.00  75.00  23.00
+                                                                   20           Static               True 403.00 364.00  32.00  32.00
+Error: Error to Create file.…                                      65535        Static               True 444.00 367.00 186.00  28.00
+                                                                   6001         Static              False 164.00 132.00 713.00  32.00
+                                                                   6002         Static              False 181.00 555.00 126.00  34.00
+Copying files                                                      2015         Static              False 229.00 221.00 150.00  24.00
+                                                                   2016         msctls_progress32   False 221.00 254.00 578.00  26.00
+
