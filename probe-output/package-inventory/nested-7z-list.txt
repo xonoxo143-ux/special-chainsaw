@@ -1,0 +1,572 @@
+
+7-Zip 26.02 (x64) : Copyright (c) 1999-2026 Igor Pavlov : 2026-06-25
+
+Scanning the drive for archives:
+1 file, 24975208 bytes (24 MiB)
+
+Listing archive: D:\a\special-chainsaw\special-chainsaw\inventory-work\outer\086F3F58.EXE
+
+--
+Path = D:\a\special-chainsaw\special-chainsaw\inventory-work\outer\086F3F58.EXE
+Type = PE
+Physical Size = 24975208
+CPU = x64
+64-bit = +
+Characteristics = Executable LargeAddress
+Created = 2023-05-12 07:55:24
+Headers Size = 1024
+Checksum = 25006341
+Name = HPWINGUI.exe
+Image Size = 3473408
+Section Alignment = 4096
+File Alignment = 512
+Code Size = 2230272
+Initialized Data Size = 1120768
+Uninitialized Data Size = 0
+Linker Version = 12.0
+OS Version = 6.0
+Image Version = 0.0
+Subsystem Version = 6.0
+Subsystem = Windows GUI
+DLL Characteristics = HighEntropyVA Relocated NX-Compatible TerminalServerAware
+Stack Reserve = 1048576
+Stack Commit = 4096
+Heap Reserve = 1048576
+Heap Commit = 4096
+Virtual Address = 0x140000000
+Comment = 
+{
+FileVersion: 0.4.0.7
+FileVersion: 4.07
+ProductVersion: 4.7.0.0
+ProductVersion: 4.07
+FileDescription: HP Flash Utility (4.07 Build 05121)
+InternalName: HPWINGUI
+LegalCopyright: Copyright (C) American Megatrends International LLC.
+OriginalFilename: HPWINGUI.exe
+ProductName: HPWINGUI
+Data Directories: 16
+{
+index=1 name=IMPORT VA=0x2C7C10 Size=340
+index=2 name=RESOURCE VA=0x30A000 Size=222084
+index=3 name=EXCEPTION VA=0x2F1000 Size=102120
+index=4 name=SECURITY VA=0x17CEF20 Size=10312
+index=5 name=BASERELOC VA=0x341000 Size=61376
+index=10 name=LOAD_CONFIG VA=0x28D140 Size=112
+index=12 name=IAT VA=0x222000 Size=5312
+}
+}
+
+----------
+Path = .text
+Size = 2229918
+Packed Size = 2230272
+Virtual Size = 2229918
+Characteristics = Code Execute Read
+Offset = 1024
+Virtual Address = 0x1000
+
+Path = .rdata
+Size = 696110
+Packed Size = 696320
+Virtual Size = 696110
+Characteristics = InitializedData Read
+Offset = 2231296
+Virtual Address = 0x222000
+
+Path = .data
+Size = 38400
+Packed Size = 38400
+Virtual Size = 150592
+Characteristics = InitializedData Read Write
+Offset = 2927616
+Virtual Address = 0x2CC000
+
+Path = .pdata
+Size = 102120
+Packed Size = 102400
+Virtual Size = 102120
+Characteristics = InitializedData Read
+Offset = 2966016
+Virtual Address = 0x2F1000
+
+Path = .rsrc\1033\version.txt
+Size = 1418
+Packed Size = 1418
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\string.txt
+Size = 7818
+Packed Size = 7818
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\8
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\9
+Size = 180
+Packed Size = 180
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\10
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\11
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\12
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\13
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\14
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\15
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\16
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\17
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\18
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\19
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\20
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\21
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\22
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\CURSOR\23
+Size = 308
+Packed Size = 308
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\BITMAP\130.bmp
+Size = 522
+Packed Size = 508
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\BITMAP\131.bmp
+Size = 68534
+Packed Size = 68520
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\BITMAP\132.bmp
+Size = 12974
+Packed Size = 12960
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\BITMAP\133.bmp
+Size = 9594
+Packed Size = 9580
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\BITMAP\134.bmp
+Size = 6102
+Packed Size = 6088
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\BITMAP\135.bmp
+Size = 9454
+Packed Size = 9440
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\BITMAP\501.bmp
+Size = 6174
+Packed Size = 6160
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\BITMAP\502.bmp
+Size = 19098
+Packed Size = 19084
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\BITMAP\30994.bmp
+Size = 198
+Packed Size = 184
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\BITMAP\30996.bmp
+Size = 338
+Packed Size = 324
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\ICON\1.ico
+Size = 2238
+Packed Size = 2216
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\ICON\2.ico
+Size = 1758
+Packed Size = 1736
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\ICON\3.ico
+Size = 1406
+Packed Size = 1384
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\ICON\4.ico
+Size = 7358
+Packed Size = 7336
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\ICON\5.ico
+Size = 38078
+Packed Size = 38056
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\ICON\6.ico
+Size = 6782
+Packed Size = 6760
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\ICON\7.ico
+Size = 3262
+Packed Size = 3240
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1033\DIALOG\102
+Size = 9856
+Packed Size = 9856
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1033\DIALOG\103
+Size = 1010
+Packed Size = 1010
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\DIALOG\30721
+Size = 232
+Packed Size = 232
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\DIALOG\30734
+Size = 52
+Packed Size = 52
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\30977
+Size = 34
+Packed Size = 34
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\30998
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\30999
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31000
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31001
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31002
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31003
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31004
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31005
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31006
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31007
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31008
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31009
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31010
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1040\GROUP_CURSOR\31011
+Size = 20
+Packed Size = 20
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1028\GROUP_ICON\128
+Size = 104
+Packed Size = 104
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .rsrc\1033\MANIFEST\1
+Size = 1071
+Packed Size = 1071
+Virtual Size = 
+Characteristics = 
+Offset = 
+Virtual Address = 
+
+Path = .reloc
+Size = 61376
+Packed Size = 61440
+Virtual Size = 61376
+Characteristics = InitializedData Discardable Read
+Offset = 3290624
+Virtual Address = 0x341000
+
+Path = CERTIFICATE
+Size = 10312
+Packed Size = 10312
+Virtual Size = 10312
+Characteristics = 
+Offset = 24964896
+Virtual Address = 
+
+Path = [0]
+Size = 21612832
+Packed Size = 21612832
+Virtual Size = 21612832
+Characteristics = 
+Offset = 3352064
+Virtual Address = 
+
+Path = .rsrc_1
+Size = 125
+Packed Size = 125
+Virtual Size = 125
+Characteristics = 
+Offset = 3290499
+Virtual Address = 
+

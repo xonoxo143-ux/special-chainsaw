@@ -1,0 +1,81 @@
+
+FullName                                                                                   Name         Extension Length   LastWriteTime
+--------                                                                                   ----         --------- ------   -------------
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc                         .rsrc        .rsrc              8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.data                         .data        .data     38400    5/12/2023 7:55:24 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.pdata                        .pdata       .pdata    102120   5/12/2023 7:55:24 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rdata                        .rdata       .rdata    696110   5/12/2023 7:55:24 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.reloc                        .reloc       .reloc    61376    5/12/2023 7:55:24 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc_1                       .rsrc_1      .rsrc_1   125      5/12/2023 7:55:24 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.text                         .text        .text     2229918  5/12/2023 7:55:24 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\[0]                           [0]                    21612832 5/12/2023 7:55:24 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\CERTIFICATE                   CERTIFICATE            10312    5/12/2023 7:55:24 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028                    1028                            8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1033                    1033                            8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040                    1040                            8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP             BITMAP                          8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\GROUP_ICON         GROUP_ICON                      8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\ICON               ICON                            8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP\130.bmp     130.bmp      .bmp      522      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP\131.bmp     131.bmp      .bmp      68534    5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP\132.bmp     132.bmp      .bmp      12974    5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP\133.bmp     133.bmp      .bmp      9594     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP\134.bmp     134.bmp      .bmp      6102     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP\135.bmp     135.bmp      .bmp      9454     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP\501.bmp     501.bmp      .bmp      6174     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\BITMAP\502.bmp     502.bmp      .bmp      19098    5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\GROUP_ICON\128     128                    104      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\ICON\1.ico         1.ico        .ico      2238     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\ICON\2.ico         2.ico        .ico      1758     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\ICON\3.ico         3.ico        .ico      1406     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\ICON\4.ico         4.ico        .ico      7358     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\ICON\5.ico         5.ico        .ico      38078    5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\ICON\6.ico         6.ico        .ico      6782     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1028\ICON\7.ico         7.ico        .ico      3262     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1033\DIALOG             DIALOG                          8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1033\MANIFEST           MANIFEST                        8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1033\version.txt        version.txt  .txt      1418     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1033\DIALOG\102         102                    9856     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1033\DIALOG\103         103                    1010     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1033\MANIFEST\1         1                      1071     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\BITMAP             BITMAP                          8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR             CURSOR                          8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\DIALOG             DIALOG                          8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR       GROUP_CURSOR                    8/5/2026 5:09:48 PM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\string.txt         string.txt   .txt      7818     5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\BITMAP\30994.bmp   30994.bmp    .bmp      198      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\BITMAP\30996.bmp   30996.bmp    .bmp      338      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\10          10                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\11          11                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\12          12                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\13          13                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\14          14                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\15          15                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\16          16                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\17          17                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\18          18                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\19          19                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\20          20                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\21          21                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\22          22                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\23          23                     308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\8           8                      308      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\CURSOR\9           9                      180      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\DIALOG\30721       30721                  232      5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\DIALOG\30734       30734                  52       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\30977 30977                  34       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\30998 30998                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\30999 30999                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31000 31000                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31001 31001                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31002 31002                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31003 31003                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31004 31004                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31005 31005                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31006 31006                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31007 31007                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31008 31008                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31009 31009                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31010 31010                  20       5/1/2026 10:16:06 AM
+D:\a\special-chainsaw\special-chainsaw\inventory-work\nested\.rsrc\1040\GROUP_CURSOR\31011 31011                  20       5/1/2026 10:16:06 AM
+
