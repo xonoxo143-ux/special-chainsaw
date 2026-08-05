@@ -1,0 +1,1 @@
+/home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/outer/086F3F41.EXE: PE32+ executable (GUI) x86-64, for MS Windows, 6 sections
