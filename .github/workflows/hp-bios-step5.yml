@@ -1,0 +1,109 @@
+name: HP BIOS Export Step 5
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  export-default:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Check completion
+        id: check
+        shell: pwsh
+        run: |
+          if (Test-Path probe-output/step5-complete.txt) { 'skip=true' >> $env:GITHUB_OUTPUT } else { 'skip=false' >> $env:GITHUB_OUTPUT }
+
+      - name: Export BIOS files to Documents
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force step5-work, step5-work\outer, probe-output, probe-output\exported-default | Out-Null
+          Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile step5-work\sp172733.exe
+          & 'C:\Program Files\7-Zip\7z.exe' x -y '-ostep5-work\outer' step5-work\sp172733.exe | Out-Null
+          $exe = (Get-ChildItem step5-work\outer -Recurse -Filter '086F3F58.EXE' | Select-Object -First 1).FullName
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          $p.Refresh()
+
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class NativeMouse5 {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
+            [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+          }
+          '@
+          function Root($proc) {
+            $proc.Refresh()
+            return [System.Windows.Automation.AutomationElement]::FromHandle($proc.MainWindowHandle)
+          }
+          function Find-ByName($root, [string]$name) {
+            $c = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
+            return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c)
+          }
+          function Click-El($el, $hwnd) {
+            if (-not $el) { throw 'Element not found' }
+            $r = $el.Current.BoundingRectangle
+            $x = [int]($r.X + $r.Width / 2)
+            $y = [int]($r.Y + $r.Height / 2)
+            [NativeMouse5]::SetForegroundWindow($hwnd) | Out-Null
+            Start-Sleep -Milliseconds 300
+            [NativeMouse5]::SetCursorPos($x,$y) | Out-Null
+            [NativeMouse5]::mouse_event(0x0002,0,0,0,[UIntPtr]::Zero)
+            [NativeMouse5]::mouse_event(0x0004,0,0,0,[UIntPtr]::Zero)
+            Start-Sleep -Seconds 2
+          }
+
+          $root = Root $p
+          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
+          $root = Root $p
+          Click-El (Find-ByName $root 'Copy') $p.MainWindowHandle
+          $root = Root $p
+          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
+          $root = Root $p
+          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
+          Start-Sleep -Seconds 25
+
+          $docs = [Environment]::GetFolderPath('MyDocuments')
+          "Documents=$docs" | Out-File probe-output\step5-documents.txt
+          Get-ChildItem $docs -Recurse -Force -ErrorAction SilentlyContinue | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output\step5-files.txt -Width 900
+          Copy-Item "$docs\*" probe-output\exported-default -Recurse -Force -ErrorAction SilentlyContinue
+
+          $p.Refresh()
+          $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          if ($root) {
+            $rows = @()
+            $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+            foreach ($el in $all) {
+              $c = $el.Current
+              $rows += [pscustomobject]@{Name=$c.Name; AutomationId=$c.AutomationId; ClassName=$c.ClassName; Enabled=$c.IsEnabled; X=$c.BoundingRectangle.X; Y=$c.BoundingRectangle.Y; W=$c.BoundingRectangle.Width; H=$c.BoundingRectangle.Height}
+            }
+            $rows | Format-Table -AutoSize | Out-File probe-output\step5-ui.txt -Width 900
+          }
+          Get-Process 086F3F58 -ErrorAction SilentlyContinue | Stop-Process -Force
+          'complete' | Out-File probe-output\step5-complete.txt
+
+      - name: Commit results
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output
+          git commit -m 'Export HP BIOS files to default folder'
+          git push origin HEAD:${{ github.head_ref }}
