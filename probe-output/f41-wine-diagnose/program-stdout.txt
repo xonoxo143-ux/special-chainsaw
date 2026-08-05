@@ -1,0 +1,4 @@
+- GetProcAddress "PowerWriteACValueIndex" failure
+Driver "amifldrv" status: Unable to access port
+Driver "amifldrv" status: Unable to access port
+20 - Error: Unable to initialize memory manager
