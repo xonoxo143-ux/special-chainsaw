@@ -49,7 +49,9 @@ jobs:
           fsutil file createnew $raw 268435456 | Out-File probe-output/recovery-removable/fsutil.txt
           & $env:IMDISK -a -t file -f $raw -s 256M -m R: -o rem
           Start-Sleep -Seconds 3
-          Format-Volume -DriveLetter R -FileSystem FAT32 -NewFileSystemLabel HPBIOS -Confirm:$false -Force | Format-List | Out-File probe-output/recovery-removable/format.txt
+          cmd /c "echo Y|format R: /FS:FAT32 /Q /V:HPBIOS" | Out-File probe-output/recovery-removable/format.txt
+          if ($LASTEXITCODE -ne 0) { throw "format.com failed with code $LASTEXITCODE" }
+          Start-Sleep -Seconds 2
 
           Add-Type @'
           using System;
@@ -61,7 +63,7 @@ jobs:
           '@
           $driveType = [DriveTypeCheck]::GetDriveType('R:\')
           "GetDriveType(R:)=$driveType (2 means removable)" | Out-File probe-output/recovery-removable/drive-type.txt
-          Get-Volume -DriveLetter R | Format-List * | Out-File probe-output/recovery-removable/volume-before.txt -Width 700
+          Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='R:'" | Format-List * | Out-File probe-output/recovery-removable/volume-before.txt -Width 700
 
           Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile removable-work/sp172733.exe
           & 'C:\Program Files\7-Zip\7z.exe' x -y '-oremovable-work\outer' removable-work\sp172733.exe | Out-Null
@@ -140,7 +142,7 @@ jobs:
           Capture-UI $p 'probe-output/recovery-removable/final-ui.txt'
 
           Get-ChildItem R:\ -Recurse -Force -ErrorAction SilentlyContinue | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output/recovery-removable/files.txt -Width 1000
-          Get-Volume -DriveLetter R | Format-List * | Out-File probe-output/recovery-removable/volume-after.txt -Width 700
+          Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='R:'" | Format-List * | Out-File probe-output/recovery-removable/volume-after.txt -Width 700
           robocopy R:\ probe-output\recovery-removable\usb-tree /E /COPY:DAT /R:1 /W:1 | Out-File probe-output/recovery-removable/robocopy.txt
           if ($LASTEXITCODE -ge 8) { throw "Robocopy failed with code $LASTEXITCODE" }
           $global:LASTEXITCODE = 0
