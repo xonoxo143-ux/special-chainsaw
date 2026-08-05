@@ -11,7 +11,7 @@ jobs:
   build-image:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,7 +21,7 @@ jobs:
       - name: Check completion
         id: check
         run: |
-          if [[ -f probe-output/final/HP-86F3-F58-Recovery.img.xz ]]; then
+          if [[ -f probe-output/final/HP-86F3-F58-Recovery.img ]]; then
             echo 'skip=true' >> "$GITHUB_OUTPUT"
           else
             echo 'skip=false' >> "$GITHUB_OUTPUT"
@@ -31,9 +31,9 @@ jobs:
         if: steps.check.outputs.skip != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends dosfstools fdisk mtools xz-utils
+          sudo apt-get install -y --no-install-recommends dosfstools fdisk mtools
 
-      - name: Build and validate image
+      - name: Build direct-write recovery image
         if: steps.check.outputs.skip != 'true'
         shell: bash
         run: |
@@ -41,10 +41,13 @@ jobs:
           SRC='probe-output/exported-default'
           OUT='probe-output/final'
           IMG="$OUT/HP-86F3-F58-Recovery.img"
+          PART="$OUT/fat32-partition.img"
           mkdir -p "$OUT"
+          rm -f "$IMG" "$PART" "$OUT/build-status.txt"
+          trap 'code=$?; printf "build_exit=%s\n" "$code" > "$OUT/build-status.txt"; exit "$code"' EXIT
 
           for f in 086F3.bin 086F3.sig 086F3.b01 086F3.s01; do
-            test -f "$SRC/$f" || { echo "Missing $SRC/$f" >&2; exit 1; }
+            test -f "$SRC/$f"
           done
           test "$(stat -c %s "$SRC/086F3.bin")" -eq 16777216
           test "$(stat -c %s "$SRC/086F3.b01")" -eq 16777216
@@ -52,82 +55,60 @@ jobs:
           test "$(stat -c %s "$SRC/086F3.s01")" -eq 256
           sha256sum "$SRC"/086F3.* | tee "$OUT/exported-files.sha256"
 
-          IMAGE_MIB=256
-          START=2048
-          SECTOR=512
-          truncate -s "${IMAGE_MIB}M" "$IMG"
-          printf 'label: dos\nunit: sectors\n\nstart=%s, type=c, bootable\n' "$START" | sfdisk "$IMG"
-          TOTAL_BYTES=$((IMAGE_MIB * 1024 * 1024))
-          PART_BYTES=$((TOTAL_BYTES - START * SECTOR))
-          PART_KIB=$((PART_BYTES / 1024))
-          mkfs.vfat -F 32 -n HPBIOS --offset "$START" "$IMG" "$PART_KIB"
+          # 96 MiB disk: 1 MiB MBR gap + one 95 MiB FAT32 partition.
+          truncate -s 96M "$IMG"
+          printf 'label: dos\nunit: sectors\n\nstart=2048, size=194560, type=c, bootable\n' | sfdisk "$IMG"
+          truncate -s 95M "$PART"
+          mkfs.vfat -F 32 -n HPBIOS "$PART"
 
-          OFFSET=$((START * SECTOR))
           export MTOOLS_SKIP_CHECK=1
-          for path in \
-            ::/Hewlett-Packard \
-            ::/Hewlett-Packard/BIOS \
-            ::/Hewlett-Packard/BIOS/Current \
-            ::/Hewlett-Packard/BIOS/New \
-            ::/HP \
-            ::/HP/BIOS \
-            ::/HP/BIOS/Current \
-            ::/HP/BIOS/New \
-            ::/EFI \
-            ::/EFI/HP \
-            ::/EFI/HP/BIOS \
-            ::/EFI/HP/BIOS/Current \
-            ::/EFI/HP/BIOS/New; do
-            mmd -i "$IMG@@$OFFSET" "$path"
-          done
+          mmd -i "$PART" ::/Hewlett-Packard
+          mmd -i "$PART" ::/Hewlett-Packard/BIOS
+          mmd -i "$PART" ::/Hewlett-Packard/BIOS/Current
+          mmd -i "$PART" ::/Hewlett-Packard/BIOS/New
 
-          for dir in \
-            ::/Hewlett-Packard/BIOS/Current \
-            ::/Hewlett-Packard/BIOS/New \
-            ::/HP/BIOS/Current \
-            ::/HP/BIOS/New \
-            ::/EFI/HP/BIOS/Current \
-            ::/EFI/HP/BIOS/New; do
+          for dir in ::/Hewlett-Packard/BIOS/Current ::/Hewlett-Packard/BIOS/New; do
             for f in 086F3.bin 086F3.sig 086F3.b01 086F3.s01; do
-              mcopy -i "$IMG@@$OFFSET" "$SRC/$f" "$dir/"
+              mcopy -i "$PART" "$SRC/$f" "$dir/"
             done
           done
 
           cat > "$OUT/RECOVERY_INFO.txt" <<'INFO'
 HP BIOS recovery media
 Target: HP All-in-One 24-dp0014 / SSID 86F3
-BIOS: F.58
-SoftPaq: SP172733
-The signed files were exported by the official HP BIOS Update and Recovery Utility.
+BIOS: F.58 / SoftPaq SP172733
+Signed files exported by the official HP BIOS Update and Recovery Utility.
 INFO
-          mcopy -i "$IMG@@$OFFSET" "$OUT/RECOVERY_INFO.txt" ::/
+          mcopy -i "$PART" "$OUT/RECOVERY_INFO.txt" ::/
+          fsck.vfat -vn "$PART" | tee "$OUT/fat32-check.txt"
 
           {
             echo 'Partition table:'
             sfdisk -d "$IMG"
             echo
-            echo 'Recovery folder:'
-            mdir -i "$IMG@@$OFFSET" ::/Hewlett-Packard/BIOS/Current
+            echo 'Root:'
+            mdir -i "$PART" ::/
             echo
-            echo 'Mirrored HP folder:'
-            mdir -i "$IMG@@$OFFSET" ::/HP/BIOS/Current
+            echo 'Current:'
+            mdir -i "$PART" ::/Hewlett-Packard/BIOS/Current
             echo
-            echo 'Mirrored EFI folder:'
-            mdir -i "$IMG@@$OFFSET" ::/EFI/HP/BIOS/Current
+            echo 'New:'
+            mdir -i "$PART" ::/Hewlett-Packard/BIOS/New
           } | tee "$OUT/image-layout.txt"
 
-          test "$(stat -c %s "$IMG")" -eq $((IMAGE_MIB * 1024 * 1024))
+          dd if="$PART" of="$IMG" bs=512 seek=2048 conv=notrunc status=progress
+          rm -f "$PART"
+          test "$(stat -c %s "$IMG")" -eq 100663296
           sha256sum "$IMG" | tee "$OUT/HP-86F3-F58-Recovery.img.sha256"
-          xz -T0 -9e --check=sha256 "$IMG"
-          sha256sum "$IMG.xz" | tee "$OUT/HP-86F3-F58-Recovery.img.xz.sha256"
-          test "$(stat -c %s "$IMG.xz")" -lt 100000000
+          printf 'build_exit=0\n' > "$OUT/build-status.txt"
+          trap - EXIT
           ls -lh "$OUT"
 
-      - name: Commit final image
-        if: steps.check.outputs.skip != 'true'
+      - name: Commit result or diagnostics
+        if: always() && steps.check.outputs.skip != 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add probe-output/final
-          git commit -m 'Add verified HP 86F3 F.58 recovery image'
+          git commit -m 'Add direct-write HP 86F3 F.58 recovery image' || true
           git push origin HEAD:${{ github.head_ref }}
