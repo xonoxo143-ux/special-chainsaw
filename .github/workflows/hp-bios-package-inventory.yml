@@ -1,0 +1,67 @@
+name: HP BIOS Package Inventory
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  inventory:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Check completion
+        id: check
+        shell: pwsh
+        run: |
+          if (Test-Path probe-output/package-inventory/complete.txt) { 'skip=true' >> $env:GITHUB_OUTPUT } else { 'skip=false' >> $env:GITHUB_OUTPUT }
+
+      - name: Extract and inventory package
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force probe-output/package-inventory, inventory-work/outer, inventory-work/nested | Out-Null
+          Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile inventory-work/sp172733.exe
+          $seven = 'C:\Program Files\7-Zip\7z.exe'
+          & $seven l -slt inventory-work/sp172733.exe | Out-File probe-output/package-inventory/softpaq-7z-list.txt -Width 1000
+          & $seven x -y '-oinventory-work\outer' inventory-work\sp172733.exe | Out-File probe-output/package-inventory/softpaq-extract.txt
+          Get-ChildItem inventory-work/outer -Recurse -Force | Select-Object FullName,Name,Extension,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output/package-inventory/outer-files.txt -Width 1000
+
+          $nestedExe = (Get-ChildItem inventory-work/outer -Recurse -Filter '086F3F58.EXE' | Select-Object -First 1).FullName
+          if (-not $nestedExe) { throw '086F3F58.EXE missing' }
+          & $seven l -slt $nestedExe | Out-File probe-output/package-inventory/nested-7z-list.txt -Width 1000
+          & $seven x -y '-oinventory-work\nested' $nestedExe | Out-File probe-output/package-inventory/nested-extract.txt
+          Get-ChildItem inventory-work/nested -Recurse -Force | Select-Object FullName,Name,Extension,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output/package-inventory/nested-files.txt -Width 1000
+
+          Get-ChildItem inventory-work -Recurse -File | Where-Object {
+            $_.Name -match '(?i)bios|efi|s12|s09|sig|bin|rom|fd|recovery|update'
+          } | Select-Object FullName,Name,Extension,Length | Format-Table -AutoSize | Out-File probe-output/package-inventory/interesting-files.txt -Width 1000
+
+          $copy = Get-ChildItem inventory-work -Recurse -File | Where-Object {
+            $_.Name -match '(?i)biosupdate|\.efi$|\.s12$|\.s09$|\.sig$' -and $_.Length -lt 10000000
+          }
+          foreach ($f in $copy) {
+            $dest = Join-Path 'probe-output/package-inventory/files' $f.Name
+            New-Item -ItemType Directory -Force (Split-Path $dest -Parent) | Out-Null
+            Copy-Item $f.FullName $dest -Force
+          }
+          'complete' | Out-File probe-output/package-inventory/complete.txt
+
+      - name: Commit inventory
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output/package-inventory
+          git commit -m 'Inventory HP BIOS package recovery components'
+          git push origin HEAD:${{ github.head_ref }}

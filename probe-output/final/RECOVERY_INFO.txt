@@ -1,0 +1,4 @@
+HP BIOS Recovery Media
+HP All-in-One 24-dp0014 / SSID 86F3
+BIOS F.58 / SoftPaq SP172733
+Signed files exported with the official HP utility.

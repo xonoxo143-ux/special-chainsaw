@@ -1,0 +1,114 @@
+name: HP BIOS Export Probe
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Skip completed probe
+        id: check
+        shell: pwsh
+        run: |
+          if (Test-Path probe-output/complete.txt) {
+            'skip=true' >> $env:GITHUB_OUTPUT
+          } else {
+            'skip=false' >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Run utility and capture diagnostics
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          New-Item -ItemType Directory -Force probe-output, work, work\outer | Out-Null
+          Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile work\sp172733.exe
+          $seven = 'C:\Program Files\7-Zip\7z.exe'
+          & $seven x -y '-owork\outer' work\sp172733.exe | Out-File probe-output\7z.txt
+          $exe = (Get-ChildItem work\outer -Recurse -Filter '086F3F58.EXE' | Select-Object -First 1).FullName
+          if (-not $exe) { throw '086F3F58.EXE not found' }
+          Copy-Item $exe probe-output\086F3F58.EXE
+
+          $bytes = [IO.File]::ReadAllBytes($exe)
+          $ascii = [Text.Encoding]::ASCII.GetString($bytes)
+          $unicode = [Text.Encoding]::Unicode.GetString($bytes)
+          $matches = @()
+          foreach ($text in @($ascii,$unicode)) {
+            $matches += [regex]::Matches($text, '[ -~]{4,}') | ForEach-Object { $_.Value } |
+              Where-Object { $_ -match '(?i)bios|image|save|copy|file|bin|rom|usb|recovery|command|switch|current|new|exit|next|cancel|update' }
+          }
+          $matches | Sort-Object -Unique | Select-Object -First 4000 | Out-File probe-output\interesting-strings.txt -Width 700
+
+          $start = Get-Date
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 12
+          $p.Refresh()
+          "PID=$($p.Id) HasExited=$($p.HasExited) MainWindowTitle=$($p.MainWindowTitle) MainWindowHandle=$($p.MainWindowHandle)" | Out-File probe-output\process.txt
+
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          try {
+            $rows = @()
+            $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+            if ($root) {
+              $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+              foreach ($el in $all) {
+                $cur = $el.Current
+                $rows += [pscustomobject]@{
+                  Name=$cur.Name
+                  ControlType=$cur.ControlType.ProgrammaticName
+                  AutomationId=$cur.AutomationId
+                  ClassName=$cur.ClassName
+                  Enabled=$cur.IsEnabled
+                  Offscreen=$cur.IsOffscreen
+                  X=$cur.BoundingRectangle.X
+                  Y=$cur.BoundingRectangle.Y
+                  W=$cur.BoundingRectangle.Width
+                  H=$cur.BoundingRectangle.Height
+                }
+              }
+              $rows | ConvertTo-Json -Depth 4 | Out-File probe-output\ui-tree.json -Width 1000
+              $rows | Format-Table -AutoSize | Out-File probe-output\ui-tree.txt -Width 700
+            }
+          } catch { $_ | Out-File probe-output\ui-error.txt }
+
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          try {
+            $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+            $g = [System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+            $bmp.Save((Join-Path $PWD 'probe-output\screen.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+            $g.Dispose(); $bmp.Dispose()
+          } catch { $_ | Out-File probe-output\screen-error.txt }
+
+          if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
+          Start-Sleep -Seconds 2
+          Get-ChildItem $env:TEMP -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.LastWriteTime -ge $start.AddMinutes(-1) -or $_.Name -match '(?i)86F3|\.bin$|\.rom$|\.sig$' } |
+            Select-Object FullName,Length,LastWriteTime |
+            Format-Table -AutoSize | Out-File probe-output\recent-files.txt -Width 700
+          'complete' | Out-File probe-output\complete.txt
+
+      - name: Commit diagnostics
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output
+          git commit -m 'Capture HP BIOS utility diagnostics'
+          git push origin HEAD:${{ github.head_ref }}

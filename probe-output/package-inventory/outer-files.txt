@@ -1,0 +1,5 @@
+
+FullName                                                                 Name         Extension   Length LastWriteTime
+--------                                                                 ----         ---------   ------ -------------
+D:\a\special-chainsaw\special-chainsaw\inventory-work\outer\086F3F58.EXE 086F3F58.EXE .EXE      24975208 5/1/2026 10:16:06 AM
+

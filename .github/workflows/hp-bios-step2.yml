@@ -1,0 +1,110 @@
+name: HP BIOS Export Step 2
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  step2:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Check completion
+        id: check
+        shell: pwsh
+        run: |
+          if (Test-Path probe-output/step2-complete.txt) { 'skip=true' >> $env:GITHUB_OUTPUT } else { 'skip=false' >> $env:GITHUB_OUTPUT }
+
+      - name: Open utility and click Next
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force step2-work, step2-work\outer, probe-output | Out-Null
+          Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile step2-work\sp172733.exe
+          & 'C:\Program Files\7-Zip\7z.exe' x -y '-ostep2-work\outer' step2-work\sp172733.exe | Out-Null
+          $exe = (Get-ChildItem step2-work\outer -Recurse -Filter '086F3F58.EXE' | Select-Object -First 1).FullName
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          $p.Refresh()
+
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          if (-not $root) { throw 'Could not access HP utility window' }
+          $condition = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, 'Next')
+          $next = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+          if (-not $next) { throw 'Next button not found' }
+          $rect = $next.Current.BoundingRectangle
+          $x = [int]($rect.X + $rect.Width / 2)
+          $y = [int]($rect.Y + $rect.Height / 2)
+
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class NativeMouse {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
+            [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+          }
+          '@
+          [NativeMouse]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
+          Start-Sleep -Milliseconds 500
+          [NativeMouse]::SetCursorPos($x, $y) | Out-Null
+          [NativeMouse]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
+          [NativeMouse]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+
+          Start-Sleep -Seconds 6
+          $p.Refresh()
+          $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          if (-not $root) { throw 'HP utility window disappeared after Next' }
+
+          $rows = @()
+          $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+          foreach ($el in $all) {
+            $cur = $el.Current
+            $rows += [pscustomobject]@{
+              Name=$cur.Name
+              ControlType=$cur.ControlType.ProgrammaticName
+              AutomationId=$cur.AutomationId
+              ClassName=$cur.ClassName
+              Enabled=$cur.IsEnabled
+              Offscreen=$cur.IsOffscreen
+              X=$cur.BoundingRectangle.X
+              Y=$cur.BoundingRectangle.Y
+              W=$cur.BoundingRectangle.Width
+              H=$cur.BoundingRectangle.Height
+            }
+          }
+          $rows | ConvertTo-Json -Depth 4 | Out-File probe-output\step2-ui.json -Width 1000
+          $rows | Format-Table -AutoSize | Out-File probe-output\step2-ui.txt -Width 700
+
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+          $g = [System.Drawing.Graphics]::FromImage($bmp)
+          $g.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+          $bmp.Save((Join-Path $PWD 'probe-output\step2-screen.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+          $g.Dispose(); $bmp.Dispose()
+          if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
+          'complete' | Out-File probe-output\step2-complete.txt
+
+      - name: Commit results
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output
+          git commit -m 'Capture HP BIOS utility second screen'
+          git push origin HEAD:${{ github.head_ref }}

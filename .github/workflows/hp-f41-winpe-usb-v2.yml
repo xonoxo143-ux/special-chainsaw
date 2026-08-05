@@ -1,0 +1,293 @@
+name: HP F41 Official USB in WinPE v2
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  create-recovery:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Check completion
+        id: check
+        shell: bash
+        run: |
+          if [[ -f probe-output/f41-winpe-v2/verified-success.txt ]]; then
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'skip=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install image and VM tools
+        if: steps.check.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            qemu-system-x86 qemu-utils ovmf wimtools xorriso p7zip-full \
+            dosfstools mtools util-linux wget ca-certificates xz-utils
+
+      - name: Build WinPE and run HP USB creator
+        id: official
+        if: steps.check.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -uo pipefail
+          OUT="$PWD/probe-output/f41-winpe-v2"
+          WORK="$PWD/f41-winpe-v2-work"
+          ISO="$WORK/windows.iso"
+          CUSTOM="$WORK/hp-winpe.iso"
+          USB="$WORK/HP-86F3-F41-Official-Recovery.img"
+          LOGIMG="$WORK/logs.img"
+          USBMNT="$WORK/usb-mnt"
+          LOGMNT="$WORK/log-mnt"
+          rm -rf "$OUT" "$WORK"
+          mkdir -p "$OUT" "$WORK/outer" "$WORK/hp" "$USBMNT" "$LOGMNT"
+
+          cleanup() {
+            set +e
+            sudo umount "$USBMNT" >/dev/null 2>&1 || true
+            sudo umount "$LOGMNT" >/dev/null 2>&1 || true
+            [[ -n "${ULOOP:-}" ]] && sudo losetup -d "$ULOOP" >/dev/null 2>&1 || true
+            [[ -n "${LLOOP:-}" ]] && sudo losetup -d "$LLOOP" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          WIN_URL='https://software-static.download.prss.microsoft.com/dbazure/988969d5-f34g-4e03-ac9d-1f9786c66750/19045.2006.220908-0225.22h2_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_en-us.iso'
+          WIN_SHA='ef7312733a9f5d7d51cfa04ac497671995674ca5e1058d5164d6028f0938d668'
+          wget -nv --progress=dot:giga "$WIN_URL" -O "$ISO" 2>&1 | tee "$OUT/windows-download.txt"
+          echo "$WIN_SHA  $ISO" | sha256sum -c - | tee "$OUT/windows-iso-verify.txt"
+
+          xorriso -indev "$ISO" -find / -iname '*boot.wim' -exec lsdl 2>&1 | tee "$OUT/iso-boot-wim-search.txt" || true
+          xorriso -osirrox on -indev "$ISO" -extract /SOURCES/BOOT.WIM "$WORK/boot.wim" 2>&1 | tee "$OUT/extract-boot-wim.txt"
+          wimlib-imagex info "$WORK/boot.wim" | tee "$OUT/boot-wim-info.txt"
+
+          wget -nv 'https://ftp.hp.com/pub/softpaq/sp141501-142000/sp141980.exe' -O "$WORK/sp141980.exe" 2>&1 | tee "$OUT/hp-download.txt"
+          sha256sum "$WORK/sp141980.exe" | tee "$OUT/sp141980.sha256"
+          7z x -y -o"$WORK/outer" "$WORK/sp141980.exe" | tee "$OUT/hp-extract.txt"
+          HP_EXE="$(find "$WORK/outer" -type f -iname '086F3F41.EXE' | head -n1)"
+          [[ -n "$HP_EXE" ]] || { echo '086F3F41.EXE not found' | tee "$OUT/failure.txt"; exit 1; }
+          cp "$HP_EXE" "$WORK/hp/086F3F41.EXE"
+          sha256sum "$WORK/hp/086F3F41.EXE" | tee "$OUT/hp-utility.sha256"
+
+          wget -nv 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip' -O "$WORK/ahk.zip" 2>&1 | tee "$OUT/ahk-download.txt"
+          7z x -y -o"$WORK/ahk" "$WORK/ahk.zip" >"$OUT/ahk-extract.txt"
+          cp "$WORK/ahk/AutoHotkeyU64.exe" "$WORK/hp/AutoHotkey.exe"
+
+          cat > "$WORK/hp/automate.ahk" <<'AHK'
+          #NoEnv
+          #SingleInstance Force
+          SetBatchLines, -1
+          SetTitleMatchMode, 2
+          DetectHiddenWindows, On
+          SendMode, Event
+          global LogPath := "X:\HP\local-log.txt"
+
+          FindLogDrive()
+          {
+            global LogPath
+            DriveGet, Ds, List
+            Loop, Parse, Ds
+            {
+              Dr := A_LoopField . ":"
+              DriveGet, Lab, Label, %Dr%
+              if (Lab = "HPLOGS")
+                LogPath := Dr . "\hp-run.log"
+            }
+          }
+          Log(M)
+          {
+            global LogPath
+            FileAppend, %M%`r`n, %LogPath%
+          }
+          Dump()
+          {
+            WinGetTitle, T, A
+            WinGet, C, ControlList, A
+            WinGetText, X, A
+            Log("---SCREEN---")
+            Log("TITLE=[" . T . "]")
+            Log("CONTROLS=[" . C . "]")
+            Log("TEXT=[" . X . "]")
+          }
+
+          FindLogDrive()
+          Log("BOOT")
+          DriveGet, Ds0, List
+          Loop, Parse, Ds0
+          {
+            D0 := A_LoopField . ":"
+            DriveGet, L0, Label, %D0%
+            DriveGet, T0, Type, %D0%
+            Log("INITIAL_DRIVE=" . D0 . " LABEL=" . L0 . " TYPE=" . T0)
+          }
+
+          Run, X:\HP\086F3F41.EXE
+          WinWait, 086F3F41, , 45
+          if ErrorLevel
+            WinWait, HP BIOS, , 20
+          if ErrorLevel
+          {
+            Log("FAIL:NO_HP_WINDOW")
+            RunWait, wpeutil shutdown
+            ExitApp
+          }
+          WinActivate
+          Sleep, 5000
+          Dump()
+          ControlClick, Next, A
+          Sleep, 4000
+          Dump()
+          ControlClick, Create Recovery USB flash drive, A
+          Sleep, 1500
+          ControlClick, Next, A
+          Sleep, 8000
+          Dump()
+          ControlGet, DL, List, , SysListView321, A
+          Log("DRIVE_LIST=[" . DL . "]")
+          ControlFocus, SysListView321, A
+          Send, {Home}{Space}
+          Sleep, 2000
+          ControlClick, Next, A
+          Sleep, 3500
+
+          Last := ""
+          Success := 0
+          Loop, 120
+          {
+            WinGetTitle, TT, A
+            WinGetText, TX, A
+            if (TX != Last)
+            {
+              Log("STATE_TITLE=[" . TT . "]")
+              Log("STATE_TEXT=[" . TX . "]")
+              Last := TX
+            }
+            if InStr(TX, "successfully")
+              Success := 1
+            ControlClick, Yes, A
+            ControlClick, OK, A
+            ControlClick, Format, A
+            Sleep, 2000
+          }
+          Log("SUCCESS_FLAG=" . Success)
+          DriveGet, Ds, List
+          Loop, Parse, Ds
+          {
+            D := A_LoopField . ":"
+            DriveGet, L, Label, %D%
+            DriveGet, Ty, Type, %D%
+            Log("DRIVE=" . D . " LABEL=" . L . " TYPE=" . Ty)
+            Loop, Files, %D%\*.*, R
+              Log("FILE=" . A_LoopFileFullPath . " SIZE=" . A_LoopFileSize)
+          }
+          Dump()
+          RunWait, wpeutil shutdown
+          ExitApp
+          AHK
+
+          cat > "$WORK/startnet.cmd" <<'CMD'
+          @echo off
+          wpeinit
+          timeout /t 10 /nobreak
+          X:\HP\AutoHotkey.exe X:\HP\automate.ahk
+          CMD
+
+          cat > "$WORK/wim-update.txt" <<EOF
+          add "$WORK/hp" "\\HP"
+          add "$WORK/startnet.cmd" "\\Windows\\System32\\startnet.cmd"
+          EOF
+          wimlib-imagex update "$WORK/boot.wim" 2 < "$WORK/wim-update.txt" | tee "$OUT/wim-update-output.txt"
+          wimlib-imagex dir "$WORK/boot.wim" 2 --path=/HP | tee "$OUT/wim-hp-tree.txt"
+
+          xorriso -indev "$ISO" -outdev "$CUSTOM" \
+            -map "$WORK/boot.wim" /SOURCES/BOOT.WIM \
+            -boot_image any replay -commit 2>&1 | tee "$OUT/xorriso-build.txt"
+          sha256sum "$CUSTOM" | tee "$OUT/custom-iso.sha256"
+
+          make_disk() {
+            local img="$1" size="$2" label="$3"
+            truncate -s "$size" "$img"
+            printf 'label: dos\nunit: sectors\n\nstart=2048, type=c, bootable\n' | sudo sfdisk "$img" >/dev/null
+            local lp
+            lp="$(sudo losetup --find --show --partscan "$img")"
+            sudo mkfs.vfat -F 32 -n "$label" "${lp}p1" >/dev/null
+            sudo losetup -d "$lp"
+          }
+          make_disk "$USB" 256M HPBIOS
+          make_disk "$LOGIMG" 64M HPLOGS
+
+          cp /usr/share/OVMF/OVMF_VARS_4M.fd "$WORK/OVMF_VARS.fd"
+          set +e
+          timeout 1200 qemu-system-x86_64 \
+            -machine q35,accel=tcg -cpu max -smp 2 -m 3072 \
+            -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
+            -drive if=pflash,format=raw,file="$WORK/OVMF_VARS.fd" \
+            -boot order=d -drive if=none,id=cd,media=cdrom,readonly=on,file="$CUSTOM" \
+            -device ide-cd,drive=cd \
+            -device qemu-xhci,id=xhci \
+            -drive if=none,id=usbmedia,file="$USB",format=raw,cache=unsafe \
+            -device usb-storage,bus=xhci.0,drive=usbmedia,removable=on \
+            -drive file="$LOGIMG",format=raw,if=ide,index=1,media=disk \
+            -display none -serial file:"$OUT/qemu-serial.txt" -no-reboot \
+            2>"$OUT/qemu-stderr.txt"
+          QEMU_EXIT=$?
+          set -e
+          echo "$QEMU_EXIT" >"$OUT/qemu-exit.txt"
+
+          ULOOP="$(sudo losetup --find --show --partscan "$USB")"
+          LLOOP="$(sudo losetup --find --show --partscan "$LOGIMG")"
+          sudo mount -o ro "${ULOOP}p1" "$USBMNT"
+          sudo mount -o ro "${LLOOP}p1" "$LOGMNT"
+          find "$USBMNT" -maxdepth 12 -printf '%y\t%P\t%s\n' | sort | tee "$OUT/usb-tree.txt"
+          find "$USBMNT" -type f -print0 | sort -z | xargs -0 -r sha256sum | tee "$OUT/usb-files.sha256"
+          find "$LOGMNT" -maxdepth 5 -printf '%y\t%P\t%s\n' | sort | tee "$OUT/log-tree.txt"
+          mkdir -p "$OUT/logs"
+          cp -a "$LOGMNT/." "$OUT/logs/" 2>/dev/null || true
+          sudo fsck.vfat -vn "${ULOOP}p1" | tee "$OUT/usb-fsck.txt" || true
+          sudo sfdisk -d "$USB" | tee "$OUT/usb-partition-table.txt"
+          sha256sum "$USB" | tee "$OUT/usb-image.sha256"
+
+          LOGFILE="$OUT/logs/hp-run.log"
+          if grep -Eqi 'SUCCESS_FLAG=1|successfully' "$LOGFILE" 2>/dev/null \
+             && grep -Eqi '086F3\.(bin|sig|b01|s01)' "$OUT/usb-tree.txt"; then
+            cp "$USB" "$OUT/HP-86F3-F41-Official-Recovery.img"
+            sha256sum "$OUT/HP-86F3-F41-Official-Recovery.img" >"$OUT/HP-86F3-F41-Official-Recovery.img.sha256"
+            echo 'Microsoft WinPE ran HP Create Recovery USB successfully; the resulting USB image contains the signed 86F3 files.' >"$OUT/verified-success.txt"
+            echo 'success=true' >>"$GITHUB_OUTPUT"
+          else
+            echo 'No verified HP success state; image withheld.' | tee "$OUT/failure.txt"
+            echo 'success=false' >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload verified recovery image
+        if: steps.official.outputs.success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HP-86F3-F41-Official-Recovery-WinPE-v2
+          path: probe-output/f41-winpe-v2/HP-86F3-F41-Official-Recovery.img
+          compression-level: 6
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Commit evidence
+        if: always() && steps.check.outputs.skip != 'true'
+        shell: bash
+        run: |
+          rm -f probe-output/f41-winpe-v2/HP-86F3-F41-Official-Recovery.img
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output/f41-winpe-v2
+          git commit -m 'Retry HP F.41 official USB creator in Microsoft WinPE' || exit 0
+          git push origin HEAD:${{ github.head_ref }}

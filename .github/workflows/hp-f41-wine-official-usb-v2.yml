@@ -1,0 +1,200 @@
+name: HP F41 Official USB via Wine v2
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  create-official-usb:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Check completion
+        id: check
+        shell: bash
+        run: |
+          if [[ -f probe-output/f41-wine-v2/success.txt ]]; then
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'skip=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install runtime
+        if: steps.check.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            wine wine64 wine32 xvfb xdotool wmctrl p7zip-full dosfstools mtools \
+            util-linux imagemagick tesseract-ocr ca-certificates wget xz-utils
+
+      - name: Run official recovery-media path
+        id: official
+        if: steps.check.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -uo pipefail
+          OUT="$PWD/probe-output/f41-wine-v2"
+          WORK="$PWD/f41-wine-v2-work"
+          PREFIX="$WORK/wineprefix"
+          RAW="$WORK/HP-86F3-F41-Official-Recovery.img"
+          MNT="$WORK/usb"
+          rm -rf "$OUT" "$WORK"
+          mkdir -p "$OUT" "$WORK/outer" "$MNT"
+
+          cleanup() {
+            set +e
+            wineserver -k >/dev/null 2>&1 || true
+            sudo umount "$MNT" >/dev/null 2>&1 || true
+            [[ -n "${LOOP:-}" ]] && sudo losetup -d "$LOOP" >/dev/null 2>&1 || true
+            [[ -n "${XVFB_PID:-}" ]] && kill "$XVFB_PID" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          type -a wine wineboot wineserver winepath | tee "$OUT/wine-commands.txt"
+          wine --version | tee "$OUT/wine-version.txt"
+
+          wget -nv 'https://ftp.hp.com/pub/softpaq/sp141501-142000/sp141980.exe' -O "$WORK/sp141980.exe" 2>&1 | tee "$OUT/download.txt"
+          sha256sum "$WORK/sp141980.exe" | tee "$OUT/sp141980.sha256"
+          7z x -y -o"$WORK/outer" "$WORK/sp141980.exe" | tee "$OUT/outer-extract.txt"
+          UTILITY="$(find "$WORK/outer" -type f -iname '086F3F41.EXE' | head -n1)"
+          [[ -n "$UTILITY" ]] || { echo '086F3F41.EXE missing' | tee "$OUT/failure.txt"; exit 1; }
+          file "$UTILITY" | tee "$OUT/utility-file.txt"
+          sha256sum "$UTILITY" | tee "$OUT/utility.sha256"
+
+          truncate -s 256M "$RAW"
+          printf 'label: dos\nunit: sectors\n\nstart=2048, type=c, bootable\n' | sudo sfdisk "$RAW" | tee "$OUT/sfdisk-create.txt"
+          LOOP="$(sudo losetup --find --show --partscan "$RAW")"
+          PART="${LOOP}p1"
+          sudo mkfs.vfat -F 32 -n HPBIOS "$PART" | tee "$OUT/mkfs.txt"
+          sudo mount -o "uid=$(id -u),gid=$(id -g),umask=000" "$PART" "$MNT"
+          sudo chmod 666 "$LOOP" "$PART"
+
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1280x800x24 -nolisten tcp >"$OUT/xvfb.log" 2>&1 &
+          XVFB_PID=$!
+          sleep 2
+          export WINEPREFIX="$PREFIX"
+          export WINEDEBUG=-all
+          wineboot -u >"$OUT/wineboot.log" 2>&1
+          sleep 3
+          rm -f "$PREFIX/dosdevices/r:" "$PREFIX/dosdevices/r::"
+          ln -s "$MNT" "$PREFIX/dosdevices/r:"
+          ln -s "$PART" "$PREFIX/dosdevices/r::"
+          wine reg add 'HKCU\Software\Wine\Drives' /v 'r:' /d floppy /f >"$OUT/wine-reg.txt" 2>&1 || true
+          wine cmd /c 'fsutil fsinfo drivetype r:' >"$OUT/wine-drive-type.txt" 2>&1 || true
+          wine cmd /c 'dir r:\' >"$OUT/wine-dir-before.txt" 2>&1 || true
+
+          wget -nv 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip' -O "$WORK/ahk.zip" 2>&1 | tee "$OUT/ahk-download.txt"
+          7z x -y -o"$WORK/ahk" "$WORK/ahk.zip" >"$OUT/ahk-extract.txt"
+          AHK="$WORK/ahk/AutoHotkeyU64.exe"
+          [[ -f "$AHK" ]] || AHK="$WORK/ahk/AutoHotkeyU32.exe"
+          WIN_UTILITY="$(winepath -w "$UTILITY")"
+
+          cat > "$WORK/automate.ahk" <<'AHK'
+          #NoEnv
+          #SingleInstance Force
+          SetBatchLines, -1
+          SetTitleMatchMode, 2
+          DetectHiddenWindows, On
+          CoordMode, Mouse, Window
+          log := A_ScriptDir . "\ahk-log.txt"
+          FileAppend, START`n, %log%
+          Run, %1%
+          WinWait, 086F3F41, , 20
+          if ErrorLevel
+            WinWait, HP BIOS, , 20
+          if ErrorLevel
+          {
+            FileAppend, NO_WINDOW`n, %log%
+            ExitApp
+          }
+          WinActivate
+          Sleep, 5000
+          Gosub, Dump
+          ControlClick, Next, A
+          Sleep, 3500
+          Gosub, Dump
+          ControlClick, Create Recovery USB flash drive, A
+          Sleep, 1000
+          ControlClick, Next, A
+          Sleep, 6000
+          Gosub, Dump
+          ControlGet, list, List, , SysListView321, A
+          FileAppend, DRIVE_LIST=[%list%]`n, %log%
+          ControlFocus, SysListView321, A
+          Send, {Home}{Space}
+          Sleep, 1500
+          ControlClick, Next, A
+          Sleep, 70000
+          Gosub, Dump
+          WinGetText, txt, A
+          FileAppend, FINAL_TEXT=[%txt%]`nDONE`n, %log%
+          ExitApp
+
+          Dump:
+          WinGetTitle, title, A
+          WinGet, controls, ControlList, A
+          WinGetText, text, A
+          FileAppend, ---SCREEN---`nTITLE=%title%`nCONTROLS=%controls%`nTEXT=%text%`n, %log%
+          Return
+          AHK
+
+          WIN_SCRIPT="$(winepath -w "$WORK/automate.ahk")"
+          timeout 120s wine "$AHK" "$WIN_SCRIPT" "$WIN_UTILITY" >"$OUT/ahk-stdout.txt" 2>"$OUT/ahk-stderr.txt" || true
+          cp -f "$WORK/ahk-log.txt" "$OUT/ahk-log.txt" 2>/dev/null || true
+          wmctrl -l >"$OUT/windows.txt" 2>&1 || true
+          import -window root "$OUT/final-screen.png" 2>"$OUT/screenshot-error.txt" || true
+          tesseract "$OUT/final-screen.png" "$OUT/final-screen" 2>"$OUT/tesseract-error.txt" || true
+          wine cmd /c 'dir r:\ /s' >"$OUT/wine-dir-after.txt" 2>&1 || true
+
+          sync
+          find "$MNT" -maxdepth 10 -printf '%y\t%P\t%s\n' | sort | tee "$OUT/usb-tree.txt"
+          find "$MNT" -type f -print0 | sort -z | xargs -0 -r sha256sum | tee "$OUT/usb-files.sha256"
+          sudo fsck.vfat -vn "$PART" | tee "$OUT/fsck.txt" || true
+          sudo umount "$MNT"
+          sudo sfdisk -d "$RAW" | tee "$OUT/partition-table.txt"
+          sha256sum "$RAW" | tee "$OUT/raw.sha256"
+
+          if grep -Eqi 'created successfully|recovery flash drive was created successfully' "$OUT/ahk-log.txt" "$OUT/final-screen.txt" 2>/dev/null \
+             && grep -Eqi '086F3\.(bin|sig|b01|s01)' "$OUT/usb-tree.txt"; then
+            cp "$RAW" "$OUT/HP-86F3-F41-Official-Recovery.img"
+            sha256sum "$OUT/HP-86F3-F41-Official-Recovery.img" > "$OUT/HP-86F3-F41-Official-Recovery.img.sha256"
+            echo 'HP utility reported success and wrote signed 86F3 recovery files.' > "$OUT/success.txt"
+            echo 'success=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'No verified HP success state; image withheld.' | tee "$OUT/failure.txt"
+            echo 'success=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload verified raw recovery image
+        if: steps.official.outputs.success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HP-86F3-F41-Official-Recovery
+          path: probe-output/f41-wine-v2/HP-86F3-F41-Official-Recovery.img
+          compression-level: 6
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Commit evidence
+        if: always() && steps.check.outputs.skip != 'true'
+        shell: bash
+        run: |
+          rm -f probe-output/f41-wine-v2/HP-86F3-F41-Official-Recovery.img
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output/f41-wine-v2
+          git commit -m 'Run HP F.41 official USB workflow under Wine' || exit 0
+          git push origin HEAD:${{ github.head_ref }}

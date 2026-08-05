@@ -1,0 +1,63 @@
+
+7-Zip 26.02 (x64) : Copyright (c) 1999-2026 Igor Pavlov : 2026-06-25
+
+Scanning the drive for archives:
+1 file, 24975208 bytes (24 MiB)
+
+Extracting archive: D:\a\special-chainsaw\special-chainsaw\inventory-work\outer\086F3F58.EXE
+--
+Path = D:\a\special-chainsaw\special-chainsaw\inventory-work\outer\086F3F58.EXE
+Type = PE
+Physical Size = 24975208
+CPU = x64
+64-bit = +
+Characteristics = Executable LargeAddress
+Created = 2023-05-12 07:55:24
+Headers Size = 1024
+Checksum = 25006341
+Name = HPWINGUI.exe
+Image Size = 3473408
+Section Alignment = 4096
+File Alignment = 512
+Code Size = 2230272
+Initialized Data Size = 1120768
+Uninitialized Data Size = 0
+Linker Version = 12.0
+OS Version = 6.0
+Image Version = 0.0
+Subsystem Version = 6.0
+Subsystem = Windows GUI
+DLL Characteristics = HighEntropyVA Relocated NX-Compatible TerminalServerAware
+Stack Reserve = 1048576
+Stack Commit = 4096
+Heap Reserve = 1048576
+Heap Commit = 4096
+Virtual Address = 0x140000000
+Comment = 
+{
+FileVersion: 0.4.0.7
+FileVersion: 4.07
+ProductVersion: 4.7.0.0
+ProductVersion: 4.07
+FileDescription: HP Flash Utility (4.07 Build 05121)
+InternalName: HPWINGUI
+LegalCopyright: Copyright (C) American Megatrends International LLC.
+OriginalFilename: HPWINGUI.exe
+ProductName: HPWINGUI
+Data Directories: 16
+{
+index=1 name=IMPORT VA=0x2C7C10 Size=340
+index=2 name=RESOURCE VA=0x30A000 Size=222084
+index=3 name=EXCEPTION VA=0x2F1000 Size=102120
+index=4 name=SECURITY VA=0x17CEF20 Size=10312
+index=5 name=BASERELOC VA=0x341000 Size=61376
+index=10 name=LOAD_CONFIG VA=0x28D140 Size=112
+index=12 name=IAT VA=0x222000 Size=5312
+}
+}
+
+Everything is Ok
+
+Files: 64
+Size:       24971738
+Compressed: 24975208

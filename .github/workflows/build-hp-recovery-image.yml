@@ -1,0 +1,137 @@
+name: Build Final HP BIOS Recovery Image
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-image:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Check completion
+        id: check
+        run: |
+          if [[ -f probe-output/final/HP-86F3-F58-Recovery.img.xz ]]; then
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'skip=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install FAT32 tools
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dosfstools fdisk mtools xz-utils
+
+      - name: Build and validate image
+        if: steps.check.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC='probe-output/exported-default'
+          OUT='probe-output/final'
+          IMG="$OUT/HP-86F3-F58-Recovery.img"
+          mkdir -p "$OUT"
+
+          for f in 086F3.bin 086F3.sig 086F3.b01 086F3.s01; do
+            test -f "$SRC/$f" || { echo "Missing $SRC/$f" >&2; exit 1; }
+          done
+          test "$(stat -c %s "$SRC/086F3.bin")" -eq 16777216
+          test "$(stat -c %s "$SRC/086F3.b01")" -eq 16777216
+          test "$(stat -c %s "$SRC/086F3.sig")" -eq 256
+          test "$(stat -c %s "$SRC/086F3.s01")" -eq 256
+          sha256sum "$SRC"/086F3.* | tee "$OUT/exported-files.sha256"
+
+          IMAGE_MIB=256
+          START=2048
+          SECTOR=512
+          truncate -s "${IMAGE_MIB}M" "$IMG"
+          printf 'label: dos\nunit: sectors\n\nstart=%s, type=c, bootable\n' "$START" | sfdisk "$IMG"
+          TOTAL_BYTES=$((IMAGE_MIB * 1024 * 1024))
+          PART_BYTES=$((TOTAL_BYTES - START * SECTOR))
+          PART_KIB=$((PART_BYTES / 1024))
+          mkfs.vfat -F 32 -n HPBIOS --offset "$START" "$IMG" "$PART_KIB"
+
+          OFFSET=$((START * SECTOR))
+          export MTOOLS_SKIP_CHECK=1
+          mmd -i "$IMG@@$OFFSET" ::/Hewlett-Packard
+          mmd -i "$IMG@@$OFFSET" ::/Hewlett-Packard/BIOS
+          mmd -i "$IMG@@$OFFSET" ::/Hewlett-Packard/BIOS/Current
+          mmd -i "$IMG@@$OFFSET" ::/Hewlett-Packard/BIOS/New
+          mmd -i "$IMG@@$OFFSET" ::/HP
+          mmd -i "$IMG@@$OFFSET" ::/HP/BIOS
+          mmd -i "$IMG@@$OFFSET" ::/HP/BIOS/Current
+          mmd -i "$IMG@@$OFFSET" ::/HP/BIOS/New
+          mmd -i "$IMG@@$OFFSET" ::/EFI
+          mmd -i "$IMG@@$OFFSET" ::/EFI/HP
+          mmd -i "$IMG@@$OFFSET" ::/EFI/HP/BIOS
+          mmd -i "$IMG@@$OFFSET" ::/EFI/HP/BIOS/Current
+          mmd -i "$IMG@@$OFFSET" ::/EFI/HP/BIOS/New
+
+          for dir in \
+            ::/Hewlett-Packard/BIOS/Current \
+            ::/Hewlett-Packard/BIOS/New \
+            ::/HP/BIOS/Current \
+            ::/HP/BIOS/New \
+            ::/EFI/HP/BIOS/Current \
+            ::/EFI/HP/BIOS/New; do
+            for f in 086F3.bin 086F3.sig 086F3.b01 086F3.s01; do
+              mcopy -i "$IMG@@$OFFSET" "$SRC/$f" "$dir/"
+            done
+          done
+
+          cat > "$OUT/RECOVERY_INFO.txt" <<'INFO'
+HP BIOS recovery media
+Target: HP All-in-One 24-dp0014 / SSID 86F3
+BIOS: F.58
+SoftPaq: SP172733
+Files were exported by the official HP BIOS Update and Recovery Utility.
+Use HP emergency recovery: power off, insert USB, hold Windows+B, press Power for 2-3 seconds, release Power while continuing to hold Windows+B.
+INFO
+          mcopy -i "$IMG@@$OFFSET" "$OUT/RECOVERY_INFO.txt" ::/
+
+          {
+            echo 'Partition table:'
+            sfdisk -d "$IMG"
+            echo
+            echo 'Root listing:'
+            mdir -i "$IMG@@$OFFSET" ::/
+            echo
+            echo 'Hewlett-Packard Current:'
+            mdir -i "$IMG@@$OFFSET" ::/Hewlett-Packard/BIOS/Current
+            echo
+            echo 'Hewlett-Packard New:'
+            mdir -i "$IMG@@$OFFSET" ::/Hewlett-Packard/BIOS/New
+            echo
+            echo 'HP Current:'
+            mdir -i "$IMG@@$OFFSET" ::/HP/BIOS/Current
+            echo
+            echo 'EFI HP Current:'
+            mdir -i "$IMG@@$OFFSET" ::/EFI/HP/BIOS/Current
+          } | tee "$OUT/image-layout.txt"
+
+          test "$(stat -c %s "$IMG")" -eq $((IMAGE_MIB * 1024 * 1024))
+          sha256sum "$IMG" | tee "$OUT/HP-86F3-F58-Recovery.img.sha256"
+          xz -T0 -9e --check=sha256 "$IMG"
+          sha256sum "$IMG.xz" | tee "$OUT/HP-86F3-F58-Recovery.img.xz.sha256"
+          test "$(stat -c %s "$IMG.xz")" -lt 100000000 || { echo 'Compressed image exceeds GitHub limit' >&2; exit 1; }
+          ls -lh "$OUT"
+
+      - name: Commit final image
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output/final
+          git commit -m 'Add verified HP 86F3 F.58 recovery image'
+          git push origin HEAD:${{ github.head_ref }}

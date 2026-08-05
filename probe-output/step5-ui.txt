@@ -1,0 +1,10 @@
+
+Name                                AutomationId ClassName         Enabled      X      Y      W     H
+----                                ------------ ---------         -------      -      -      -     -
+                                    6001         Static               True 164.00 132.00 713.00 32.00
+                                    6002         Static               True 181.00 555.00 126.00 34.00
+Finish                              2            Button               True 758.00 555.00  75.00 29.00
+                                    2016         msctls_progress32    True 221.00 254.00 578.00 26.00
+                                    2017         Static               True 254.00 303.00  62.00 50.00
+The files were copied successfully. 4006         Static               True 337.00 319.00 450.00 81.00
+

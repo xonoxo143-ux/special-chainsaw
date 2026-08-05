@@ -1,0 +1,84 @@
+name: HP F41 Wine Startup Diagnose
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Skip completed
+        id: check
+        shell: bash
+        run: |
+          if [[ -f probe-output/f41-wine-diagnose/complete.txt ]]; then
+            echo 'skip=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'skip=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install runtime
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            wine wine64 wine32 xvfb x11-utils imagemagick p7zip-full wget ca-certificates
+
+      - name: Run and capture startup
+        if: steps.check.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -uo pipefail
+          OUT="$PWD/probe-output/f41-wine-diagnose"
+          WORK="$PWD/f41-diagnose-work"
+          PREFIX="$WORK/prefix"
+          rm -rf "$OUT" "$WORK"
+          mkdir -p "$OUT" "$WORK/outer"
+          wget -nv 'https://ftp.hp.com/pub/softpaq/sp141501-142000/sp141980.exe' -O "$WORK/sp141980.exe"
+          7z x -y -o"$WORK/outer" "$WORK/sp141980.exe" >"$OUT/extract.txt"
+          EXE="$(find "$WORK/outer" -iname '086F3F41.EXE' | head -n1)"
+          export DISPLAY=:99 WINEPREFIX="$PREFIX"
+          Xvfb :99 -screen 0 1280x800x24 -nolisten tcp >"$OUT/xvfb.log" 2>&1 &
+          XVFB=$!
+          sleep 2
+          wineboot -u >"$OUT/wineboot.txt" 2>&1
+          sleep 3
+          set +e
+          WINEDEBUG=+seh,+loaddll,+module wine "$EXE" >"$OUT/program-stdout.txt" 2>"$OUT/program-stderr.txt" &
+          PID=$!
+          echo "$PID" >"$OUT/program.pid"
+          sleep 15
+          ps -ef | grep -E 'wine|086F3|wineserver' | grep -v grep >"$OUT/processes.txt" || true
+          xwininfo -root -tree >"$OUT/x-tree.txt" 2>&1 || true
+          import -window root "$OUT/screen.png" 2>"$OUT/screenshot-error.txt" || true
+          if kill -0 "$PID" 2>/dev/null; then
+            echo 'still-running-after-15s' >"$OUT/process-state.txt"
+            kill "$PID" 2>/dev/null || true
+          else
+            wait "$PID"
+            echo "exited=$?" >"$OUT/process-state.txt"
+          fi
+          wineserver -k >/dev/null 2>&1 || true
+          kill "$XVFB" >/dev/null 2>&1 || true
+          echo complete >"$OUT/complete.txt"
+
+      - name: Commit diagnostics
+        if: always() && steps.check.outputs.skip != 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output/f41-wine-diagnose
+          git commit -m 'Capture HP F.41 Wine startup diagnostics' || exit 0
+          git push origin HEAD:${{ github.head_ref }}

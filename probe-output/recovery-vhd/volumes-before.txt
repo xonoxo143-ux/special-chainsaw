@@ -1,0 +1,9 @@
+
+DriveLetter FileSystemLabel FileSystemType         Size SizeRemaining DriveType
+----------- --------------- --------------         ---- ------------- ---------
+          R HPBIOS          FAT32             263127040     263120896 Fixed
+            Recovery        NTFS              471855104     457297920 Fixed
+                            FAT32              99614720      63656960 Fixed
+          C Windows         NTFS           160467759104   32440610816 Fixed
+          D Temp            NTFS           236205371392  235824353280 Fixed
+

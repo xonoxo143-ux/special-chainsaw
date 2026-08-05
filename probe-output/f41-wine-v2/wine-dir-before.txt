@@ -1,0 +1,7 @@
+Volume in drive r is HPBIOS
+Volume Serial Number is 3a72-2147
+
+Directory of r:
+
+File not found.
+

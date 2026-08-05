@@ -1,0 +1,80 @@
+
+7-Zip 26.02 (x64) : Copyright (c) 1999-2026 Igor Pavlov : 2026-06-25
+
+Scanning the drive for archives:
+1 file, 23138472 bytes (23 MiB)
+
+Extracting archive: inventory-work\sp172733.exe
+--
+Path = inventory-work\sp172733.exe
+Type = PE
+Physical Size = 23138472
+CPU = x86
+Characteristics = Executable 32-bit
+Created = 2020-11-19 07:38:27
+Headers Size = 1024
+Checksum = 23148570
+Name = hpsoftpaqwrapper.exe
+Image Size = 327680
+Section Alignment = 4096
+File Alignment = 512
+Code Size = 186880
+Initialized Data Size = 126464
+Uninitialized Data Size = 0
+Linker Version = 14.16
+OS Version = 6.0
+Image Version = 0.0
+Subsystem Version = 6.0
+Subsystem = Windows GUI
+DLL Characteristics = Relocated NX-Compatible TerminalServerAware
+Stack Reserve = 1048576
+Stack Commit = 4096
+Heap Reserve = 1048576
+Heap Commit = 4096
+Virtual Address = 0x400000
+Comment = 
+{
+FileVersion: 0.2.56.9141
+ProductVersion: 0.2.0.0
+ProductVersion: F.58
+CompanyName: HP Inc.
+FileDescription: HP Consumer Desktop PC BIOS Update (SSID 86F3)
+InternalName: hpsoftpaqwrapper
+OriginalFilename: hpsoftpaqwrapper.exe
+ProductName: HP Consumer Desktop PC BIOS Update (SSID 86F3)
+LegalCopyright: Copyright (c) 2024 HP Development Company, L.P.
+Data Directories: 16
+{
+index=1 name=IMPORT VA=0x3A498 Size=200
+index=2 name=RESOURCE VA=0x3F000 Size=57004
+index=4 name=SECURITY VA=0x160E2A0 Size=11784
+index=5 name=BASERELOC VA=0x4D000 Size=11144
+index=6 name=DEBUG VA=0x36970 Size=112
+index=9 name=TLS VA=0x369E0 Size=24
+index=10 name=LOAD_CONFIG VA=0x304D8 Size=64
+index=12 name=IAT VA=0x2F000 Size=976
+index=13 name=DELAY_IMPORT VA=0x3A3C4 Size=64
+}
+}
+----
+Path = [0]
+Size = 22812320
+Packed Size = 22812320
+Virtual Size = 22812320
+Offset = 314368
+--
+Path = [0]
+Type = Cab
+Offset = 16048
+Physical Size = 22796265
+Tail Size = 7
+Method = LZX:15
+Blocks = 1
+Volumes = 1
+Volume Index = 0
+ID = 730
+
+Everything is Ok
+
+Size:       24975208
+Compressed: 23138472

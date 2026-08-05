@@ -1,0 +1,40 @@
+
+Microsoft DiskPart version 10.0.26100.1150
+
+Copyright (C) Microsoft Corporation.
+On computer: runnervm7vqe0
+
+DISKPART> 
+
+    0 percent completed
+  100 percent completed
+
+
+DiskPart successfully created the virtual disk file.
+
+DISKPART> 
+DiskPart successfully selected the virtual disk file.
+
+DISKPART> 
+
+  100 percent completed
+
+
+DiskPart successfully attached the virtual disk file.
+
+DISKPART> 
+DiskPart succeeded in creating the specified partition.
+
+DISKPART> 
+
+    0 percent completed
+  100 percent completed
+
+
+DiskPart successfully formatted the volume.
+
+DISKPART> 
+DiskPart successfully assigned the drive letter or mount point.
+
+DISKPART> 
+Leaving DiskPart...

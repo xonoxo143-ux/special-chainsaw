@@ -1,0 +1,111 @@
+name: HP BIOS Export Step 3
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  step3:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Check completion
+        id: check
+        shell: pwsh
+        run: |
+          if (Test-Path probe-output/step3-complete.txt) { 'skip=true' >> $env:GITHUB_OUTPUT } else { 'skip=false' >> $env:GITHUB_OUTPUT }
+
+      - name: Open Copy BIOS dialog
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force step3-work, step3-work\outer, probe-output | Out-Null
+          Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile step3-work\sp172733.exe
+          & 'C:\Program Files\7-Zip\7z.exe' x -y '-ostep3-work\outer' step3-work\sp172733.exe | Out-Null
+          $exe = (Get-ChildItem step3-work\outer -Recurse -Filter '086F3F58.EXE' | Select-Object -First 1).FullName
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          $p.Refresh()
+
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class NativeMouse3 {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
+            [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+          }
+          '@
+          function Click-Element($el, $hwnd) {
+            $r = $el.Current.BoundingRectangle
+            $x = [int]($r.X + $r.Width / 2)
+            $y = [int]($r.Y + $r.Height / 2)
+            [NativeMouse3]::SetForegroundWindow($hwnd) | Out-Null
+            Start-Sleep -Milliseconds 300
+            [NativeMouse3]::SetCursorPos($x, $y) | Out-Null
+            [NativeMouse3]::mouse_event(0x0002,0,0,0,[UIntPtr]::Zero)
+            [NativeMouse3]::mouse_event(0x0004,0,0,0,[UIntPtr]::Zero)
+            Start-Sleep -Seconds 2
+          }
+          function Find-ByName($root, [string]$name) {
+            $c = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
+            return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c)
+          }
+
+          $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          Click-Element (Find-ByName $root 'Next') $p.MainWindowHandle
+          $p.Refresh(); $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          Click-Element (Find-ByName $root 'Copy') $p.MainWindowHandle
+          $p.Refresh(); $root = [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          Click-Element (Find-ByName $root 'Next') $p.MainWindowHandle
+          Start-Sleep -Seconds 5
+
+          $desktop = [System.Windows.Automation.AutomationElement]::RootElement
+          $rows = @()
+          $all = $desktop.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
+          foreach ($el in $all) {
+            $cur = $el.Current
+            if (-not $cur.IsOffscreen -and ($cur.Name -or $cur.AutomationId)) {
+              $rows += [pscustomobject]@{
+                Name=$cur.Name; ControlType=$cur.ControlType.ProgrammaticName; AutomationId=$cur.AutomationId; ClassName=$cur.ClassName;
+                Enabled=$cur.IsEnabled; X=$cur.BoundingRectangle.X; Y=$cur.BoundingRectangle.Y; W=$cur.BoundingRectangle.Width; H=$cur.BoundingRectangle.Height
+              }
+            }
+          }
+          $rows | ConvertTo-Json -Depth 4 | Out-File probe-output\step3-ui.json -Width 1000
+          $rows | Format-Table -AutoSize | Out-File probe-output\step3-ui.txt -Width 900
+
+          Add-Type -AssemblyName System.Windows.Forms
+          Add-Type -AssemblyName System.Drawing
+          $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+          $g = [System.Drawing.Graphics]::FromImage($bmp)
+          $g.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+          $bmp.Save((Join-Path $PWD 'probe-output\step3-screen.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+          $g.Dispose(); $bmp.Dispose()
+          Get-Process | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object Id,ProcessName,MainWindowTitle,MainWindowHandle | Format-Table -AutoSize | Out-File probe-output\step3-windows.txt -Width 700
+          Get-ChildItem $env:TEMP -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '(?i)86F3|\.bin$|\.rom$|\.sig$' } | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output\step3-files.txt -Width 700
+          Get-Process 086F3F58 -ErrorAction SilentlyContinue | Stop-Process -Force
+          'complete' | Out-File probe-output\step3-complete.txt
+
+      - name: Commit results
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output
+          git commit -m 'Capture HP BIOS copy dialog'
+          git push origin HEAD:${{ github.head_ref }}

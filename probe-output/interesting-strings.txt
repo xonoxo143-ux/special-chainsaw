@@ -1,0 +1,648 @@
+  Press "Y" to force update BIOS.
+ - EC File checking ........ ok
+ - ROM File Capsule Header checking.. 
+ - ROM File Size checking ........... 
+ - ROM File verification status ..... 
+ - ROM ID checking .................. 
+ - Update %s ............ -
+ - Update %s ............ /
+ - Update %s ............ \
+ - Update %s ............ |
+ - Warning: System doesn't have Activation Key, Activation Key update canceled.
+ - Warning: System FID table error, Activation Key update canceled.
+ Embedded Controller in system is newer than in ROM file.  EC not updated.
+ Erasing RomHole Block ....... 
+ h?BIN???3E??K?
+ Input the ME data into the BIOS ..... 
+ new
+ new[]
+ Please update BIOS to revision %s before updating this BIOS
+ Saveing RomHole Block ....... 
+ Saving current BIOS into file: %s
+ Saving current Rom Hole into file: %s
+ Secure Flash enabled, recalculate ROM size with signature...
+ Updating RomHole Block ...... 
+ Verifying RomHole Block ..... 
+ Would you like to repalce the exist file(Y) or exit(N)?...
+_?NEWz;P?2??Eh2B???Z?
+_nextafter
+- Attempt to use MSIL code from this assembly during native code initialization
+- GetCurrentPowerPolicies data failure
+- GetProcAddress "GetCurrentPowerPolicies" failure
+- inconsistent onexit begin-end variables
+- not enough space for _onexit/atexit table
+:\EFI\HP\BIOS\Current
+:\EFI\HP\BIOS\New
+:\EFI\HP\BIOSUpdate
+:\Hewlett-Packard\BIOS\Current
+:\Hewlett-Packard\BIOS\New
+:\Hewlett-Packard\BIOSUpdate
+:\HP\BIOS\Current
+:\HP\BIOS\New
+:\HP\BIOSUpdate
+????????CFile
+?????3??Usb
+???2?`#????_?L???d?=x?CFileDialog
+???JExIt
+???nEW?ZE??
+???Zl??bIn??j'G?u?????P??Ccm?
+??]????,??NewES??????&??&
+??]??z?iVANeW?????|???1
+??AFX_WM_ON_AFTER_SHELL_COMMAND
+??B?Z???USb>??o
+??D ??????2?3biN?K2d?R2
+??nEW????????????
+??NeW?r8Z
+??ROM???
+?"d??A?cm+??roM7?
+?7??????;?,cRoM?$
+?9???>d?-W?8??o?y?7<z??,z?U??T??bin?7?
+?a?e?ROm
+?bIn?4??9
+?biN?IxO
+?D??c??7??UsB?????x??0W/B?2
+?H?????usB??O
+?J;?"c?RoMu_?@???G???h???
+?M?@z;d?duSB??k?cJ???l
+?O]+s??,|Rom???x????Q?R
+?r?r?BIn#?
+?ROM??>
+?Rom>??
+?TDbIn?7????{t9)M?Q,???f*d0I???C?*s??(}NC??C
+?x?,?o?NEW??
+.?AUIFileDialogControlEvents@@
+.?AUIFileDialogEvents@@
+.?AV?$CList@UAFX_AUTOHIDE_DOCKSITE_SAVE_INFO@@AEAU1@@@
+.?AV?$CList@UCMFCRestoredTabInfo@@U1@@@
+.?AV?$CMap@IIPEAVCMFCRibbonStatusBarPane@@PEAV1@@@
+.?AV?$CMap@PEAVCWnd@@PEAV1@PEAVCImageList@@PEAV2@@@
+.?AVCBiosrevDlg@@
+.?AVCCommandManager@@
+.?AVCDataRecoveryHandler@@
+.?AVCFile@@
+.?AVCFileDialog@@
+.?AVCFileException@@
+.?AVCFileFind@@
+.?AVCImage@ATL@@
+.?AVCImageList@@
+.?AVCMemFile@@
+.?AVCMFCImageEditorDialog@@
+.?AVCMFCImageEditorPaletteBar@@
+.?AVCMFCImagePaintArea@@
+.?AVCMFCRibbonRecentFilesList@@
+.?AVCMFCTabInfo@@
+.?AVCMFCToolBarImages@@
+.?AVCMFCToolBarsCommandsListBox@@
+.?AVCMFCToolBarsCommandsPropertyPage@@
+.?AVCOleStreamFile@@
+.?AVCPngImage@@
+.?AVCSharedFile@@
+.?AVGdiplusBase@Gdiplus@@
+.?AVImage@Gdiplus@@
+.?AVXFileDialogControlEvents@CFileDialog@@
+.?AVXFileDialogEvents@CFileDialog@@
+.bin
+.PEAVCFileException@@
+'3????\?RNS2?d???Jr/S?New\??o??!Z?7-?????2?;?{?V??
+'c)eC????8?bin$????
+]???fp&?H$-????a?_m???newk??"??pH?6![??
+/?ZD??(??;j1q?nEw}??T???I??
+/recovery
+\?fE???????d 6?#RoM?
+\BIOS
+\BIOSUpdate
+\Current
+\DEVFW\Current
+\EFI\HP\BIOS\New
+\Hewlett-Packard\BIOS\New
+\HP\BIOS\New
+\New
+&New 
+%1 contains an incorrect path.8Could not open %1 because there are too many open files.
+%2\protocol\StdFileEditing\server
+%2\protocol\StdFileEditing\verb\0
+%s\%s.bin
+%s%s\%s.bin
+`copy constructor closure'
+`dynamic atexit destructor for '
+`eh vector copy constructor iterator'
+`eh vector vbase copy constructor iterator'
+`managed vector copy constructor iterator'
+`vector copy constructor iterator'
+`vector vbase copy constructor iterator'
+>??;c9ROMAE
+|                 AMI Firmware Update Utility  v%s
+|                 AMI Firmware Update Utility  v%s.%s
+|        %s <Command>
+|        %s <Input or Output File Name> <Command>
+|      Copyright (C)2012 American Megatrends Inc. All Rights Reserved.      |
+| Commands:                                                                 |
+| Usage: %s <ROM File Name> [Option 1] [Option 2]...
+|%*s            /NH:1 will switch to Hybrid.                        |
+|%*s   Example: /NH:0 will switch to Native.                        |
+|%*s   NewRomHole1.BIN /HOLE:GUID                                   |
+|%*s   NewRomHole1.BIN /HOLEOUT:GUID                                |
+|%*s   not, if not then cancel related update.                      |
+|%*s - BIOS Version Check                                           |
+|%*s - Compare ROM file's data with Systems is different or         |
+|%*s - Don't Check ROM ID                                           |
+|%*s - Native and Hybrid switch. NH:1/enable NH:0/disable           |
+|%*s - Oem Activation file                                          |
+|%*s - Override Secure Flash policy to Recovery                     |
+|%*s - Preserve ALL SMBIOS structure during programming             |
+|%*s - Preserve SMBIOS type N during programming(n=0-255)           |
+|%*s - Program all ROM Holes.                                       |
+|%*s - Program Main BIOS                                            |
+|%*s - Program n'th ROM Hole only(n=0-15).                          |
+|%*s - Save current ROM image to file                               |
+|%*s - Save specific ROM Hole according to RomHole GUID.            |
+|%*s - Set current MPM status to lock                               |
+|%*s - Show current MPM status                                      |
+|%*s - Update EC BIOS when newer version is detected.               |
+|%*s - Update specific ROM Hole according to RomHole GUID.          |
+|%*s - Verification test of given ROM File without flashing BIOS.   |
+$??UsB??K???k?ld
+$NEW
+2. Insert the flash drive into a USB port.
+2nd BIOS
+A recovery flash drive needs 20 MB of free space and a compatible FAT file system.
+Access to %1 was denied.0An incorrect file handle was associated with %1.8Could not remove %1 because it is the current directory.2Could not create %1 because the directory is full.
+AccessibleObjectFromWindow
+AFU_RomFileRHRECList[%d].RomOffset = %X
+AFU_RomFileRHRECList[%d].Size = %X
+AFU_RomFileSLPRHRECList[%d].RomOffset = %X
+AFU_RomFileSLPRHRECList[%d].Size = %X
+AFU_SysRHRECList[%d].RomOffset = %X
+AFU_SysSLPRHRECList[%d].RomOffset = %X
+AFX_WM_CHANGE_CURRENT_FOLDER
+AFX_WM_ON_CANCELTABMOVE
+AFX_WM_UPDATETOOLTIPS
+All Files (*.*)
+All of the files will be in a "Hewlett-Packard" folder.
+an unnamed file
+ApplicationRecoveryFinished
+ApplicationRecoveryInProgress
+AreFileApisANSI
+b??teKbINX
+bad file descriptor
+bad_file_descriptor
+Before coping BIOS and other files
+Before reading BIOS
+BID sign can not find in ROM file(s).
+BIOS files will be saved to this folder:
+BIOS version check / ROMID
+BIOS version check / ROMID FAIL
+BIOS version check / ROMID PASS
+BIOS\New
+BiosMgmt.efi
+BiosMgmt.s09
+BiosMgmt.s12
+BiosMgmt.s14
+BiosMgmt32.efi
+BiosMgmt32.s09
+BiosMgmt32.s12
+BiosMgmt32.s14
+BUTTON_DEFAULT_IMAGE
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\ATLMFC\INCLUDE\afxwin1.inl
+CallNextHookEx
+Cancel
+Cannot find this file.
+CFileException
+CFileFind
+Check command: 0x%X
+Check USB HP_TOOLS partition
+CImageList
+Click Next to continue.
+CMemFile
+CMFCRibbonRecentFilesList
+CMFCRibbonStatusBar
+CMFCStatusBar
+CMFCToolBarsCommandsPropertyPage
+COleStreamFile
+CombineRgn
+Command
+Command failed.)Insufficient memory to perform operation.PSystem registry entries have been removed and the INI file (if any) was deleted.BNot all of the system registry entries (or INI file) were removed.FThis program requires the file %s, which was not found on this system.tThis program is linked to the missing export %s in the file %s. This machine may have an incompatible version of %s.
+CommandType
+commdlg_FileNameOK
+Coping BIOS and other files OK
+Coping BIOS or other files FAIL
+Copy
+Copy BIOS image to any file location. (Advanced users)
+copy the BIOS image in order to use it on other devices.
+CopyAcceleratorTableA
+CopyFileA
+CopyIcon
+CopyImage
+Copying files
+Copying the update
+CopyMetaFileA
+CopyRect
+Copyright (c) 1992-2004 by P.J. Plauger, licensed by Dinkumware, Ltd. ALL RIGHTS RESERVED.
+Copyright (C) American Megatrends International LLC.
+CorExitProcess
+create a recovery USB flash drive to use on device with corrupted BIOS.
+Create an HP BIOS Recovery USB flash drive to recover another HP device.
+Create Recovery USB flash drive
+CreateFile2
+CreateFileA
+CreateFileTransactedA
+CreateFileW
+CSharedFile
+DEFAULT_COMMAND
+DeleteFileA
+Destination disk drive is full.5Unable to read from %1, it is opened by someone else.AUnable to write to %1, it is read-only or opened by someone else.1Encountered an unexpected error while reading %1.1Encountered an unexpected error while writing %1.
+DisFileROMIDcmdStr
+DragQueryFileA
+EFI_END_OF_FILE
+EFI_UNLOAD_IMAGE
+EFI\HP\BIOS\Current\
+EFI\HP\BIOS\New\
+EFI\HP\BIOS\Previous\
+EFI\HP\BIOSUpdate\
+EFI\HP\DEVFW\New\
+Embedded ROM
+Error : Unknown command.
+Error: BIOS checksum error
+Error: BIOS does not allow updating OA.
+Error: BIOS does not support ME Entire Firmware update.
+Error: BIOS does not support ME Ignition Firmware update.
+Error: BIOS doesn't support all ROM flashing function.
+Error: BIOS doesn't support Clear event log function.
+Error: BIOS doesn't support DC function
+Error: BIOS doesn't support EC Battery Check function.
+Error: BIOS doesn't support Fast boot function
+Error: BIOS doesn't support MPM function
+Error: BIOS doesn't support Native/Hybrid setting
+Error: BIOS doesn't support OEMCMD function.
+Error: BIOS doesn't support process ME information.
+Error: BIOS doesn't support Secure boot function
+Error: BIOS doesn't support updating OA.
+Error: BIOS don't support NVRAM/SETUP preserve funtion.
+Error: BIOS has already updated OA.
+Error: BIOS has no flash information available
+Error: BIOS have more than one RomHole's GUID is the same.
+Error: BIOS is write-protected
+Error: BIOS not support BIOS upload check.
+Error: BIOS not support this command.
+Error: BIOS Report ROM file crash
+Error: BIOS return error, when trying to re-flash ME Firmware data.
+Error: BIOS update cancelled by user.
+Error: BIOS version check fail.
+Error: Can not analyze ROM file. ROM file may be corrupted.
+Error: Can not analyze the ME Data. ROM file may be corrupted.
+Error: Can't open ROM ID file
+Error: EC does not permit BIOS update.
+Error: EC ROM file checksum error.
+Error: EFI files lost.
+Error: Error to Create file.
+Error: Exit EC programming mode fail.
+Error: File Size is greater than image activation key length.
+Error: Image activation key larger than BIOS activation key.
+Error: Invalid Activation Key file.
+Error: Invalid defined ROM ID length
+Error: Invalid EC ROM file.
+Error: Invalid load current CMOS option
+Error: Kernel source files cannot be found.
+Error: Legacy free / Boot guard BIOS not support runtime flash.
+Error: No EC blocks found in system ROM.
+Error: No non-critical blocks found in ROM file
+Error: Non-critical blocks in ROM image file do not match those in the system
+Error: OA key is not NULL at all. And OA Key is no the same as Bin File in system.
+Error: OA key is not NULL at all. And OA Key is the same as Bin File in system.
+Error: Problem allocating BIOS buffer
+Error: Problem freeing BIOS buffer
+Error: Problem freeing mapping BIOS
+Error: Problem freeing unmapping BIOS
+Error: Problem mapping BIOS data
+Error: Problem opening file for reading
+Error: Problem opening file to write
+Error: Problem reading file
+Error: Problem unmapping BIOS data
+Error: Problem writting file
+Error: Requested non-critical block not available in ROM file
+Error: Requested Rom Hole not available in ROM file.
+Error: ROM Chip ID mismatch.
+Error: ROM File ID don't exist
+Error: ROM file ROMID is not compatible with existing BIOS ROMID
+Error: ROM file size does not match existing BIOS size
+Error: ROM ID file is not a ROM file
+Error: ROM ID mismatch
+Error: Rom image layout detected RomHole is redesigned.
+Error: ROM or SIG file lost.
+Error: ROMHOLE not exist.
+Error: Romholes in ROM image file do not match those in the system.
+Error: Size of ROM file does not match the size of system ROM
+Error: Size of system ROM mismatches size of ROM file
+Error: System ROM ID don't exist
+Error: The BIOS image is corrupted or does not contain the correct digital signature. The system BIOS will not be updated.
+Error: The system DMI data size is greater than ROM file's DMI data length.
+Error: This BIOS version has more Not-Critical blocks than supported
+Error: Transition BIOS case.
+Error: Unable to update ROM hole
+Error: Unknown command
+EusBI3
+Exit
+EXIT FOR
+ExitProcess
+ExitThread
+ExitWindowsEx
+f:\dd\vctools\vc7libs\ship\atlmfc\src\mfc\filecore.cpp
+Failed to save document.
+file exists
+File System
+file too large
+file://
+FileBIOS ProjID : 
+FileBIOS version : 
+FileDescription
+FileName
+filename too long
+filename_too_long
+FileNameW
+FileTimeToLocalFileTime
+FileTimeToSystemTime
+FileVersion
+FindFirstFileA
+FindFirstFileTransactedA
+FindNextFileA
+FindNextVolumeA
+Flashing BIOS
+FlushFileBuffers
+Force update it will destroy the System's Activation Key.
+Formatting will erase all files on the flash drive. The files cannot be recovered.
+GdipCloneImage
+GdipCreateBitmapFromHBITMAP
+GdipCreateBitmapFromScan0
+GdipCreateBitmapFromStream
+GdipCreateFromHDC
+GdipDisposeImage
+GdipDrawImageI
+GdipDrawImageRectI
+GdipGetImageGraphicsContext
+GdipGetImageHeight
+GdipGetImagePalette
+GdipGetImagePaletteSize
+GdipGetImagePixelFormat
+GdipGetImageWidth
+GetCommandLineA
+GetCurrentDirectoryA
+GetCurrentDirectoryW
+GetCurrentPackageId
+GetCurrentPowerPolicies
+GetCurrentProcess
+GetCurrentProcessId
+GetCurrentProcessorNumber
+GetCurrentThemeName
+GetCurrentThread
+GetCurrentThreadId
+GetFileAttributesA
+GetFileAttributesExA
+GetFileAttributesTransactedA
+GetFileInformationByHandleExW
+GetFileSize
+GetFileSizeEx
+GetFileTime
+GetFileTitleA
+GetFileType
+GetModuleFileNameA
+GetModuleFileNameW
+GetNextDlgGroupItem
+GetNextDlgTabItem
+GetOpenFileNameA
+GetPrivateProfileIntA
+GetPrivateProfileStringA
+GetProfileIntA
+GetSaveFileNameA
+GetSystemTimeAsFileTime
+GetTempFileNameA
+GetUpdateRect
+h?|?USb???? {{l?j?1???m??Q??
+Hewlett-Packard\BIOS\Current\
+Hewlett-Packard\BIOS\New\
+Hewlett-Packard\BIOS\Previous\
+Hewlett-Packard\BIOSUpdate\
+Hewlett-Packard\DEVFW\New\
+HP requires that BDE be disabled during a BIOS update to prevent loss of the encryption key.
+HP strongly recommends creating a BIOS recovery partition to enable this device to automatically recover in the event of a BIOS corruption.
+HP\BIOS\Current\
+HP\BIOS\New\
+HP\BIOS\Previous\
+HP\BIOSUpdate\
+HP\DEVFW\New\
+HpBiosMgmt.efi
+HpBiosMgmt.s09
+HpBiosMgmt.s12
+HpBiosMgmt.s14
+HpBiosMgmt32.efi
+HpBiosMgmt32.s09
+HpBiosMgmt32.s12
+HpBiosMgmt32.s14
+HpBiosUpdate.efi
+HpBiosUpdate.s09
+HpBiosUpdate.s12
+HpBiosUpdate.s14
+HpBiosUpdate.sig
+HpBiosUpdate32.efi
+HpBiosUpdate32.s09
+HpBiosUpdate32.s12
+HpBiosUpdate32.s14
+HpBiosUpdate32.sig
+HPBIOSUPDREC
+HpBiosUpdShutdown
+HpDevFwUpdate.efi
+HpDevFwUpdate.s12
+hpqBIntM
+hpqBIOSInt4
+HPsavefullromcmdStr
+Id_checkromidcnt
+Id_filename
+Id_flashallrom
+ID_INIT_BIOS_INFO
+Id_MainBios_Flash
+Id_MainBios_Open
+Id_NBC_Flash_File
+Id_NBC_Open_File
+Id_NCB_Kn_Flash_File
+Id_NCB_Kn_Open_File
+Id_RomHole_Flash
+Id_Save_Rom_To_File
+Id_Save_RomHole_To_File
+ID_SECFLASH_BOOTBLOCK_RECOVERY
+ID_SECFLASH_EMBEDDEDEC_RECOVERY
+ID_SECFLASH_MAINBIOS_CAPSULE
+ID_SECFLASH_MAINBIOS_RECOVERY
+ID_SECFLASH_NVRAM_RECOVERY
+Id_SMBIOS_ReStore
+Id_SMBIOS_Store
+Id_SMBIOSN_Store
+IDB_OFFICE2007_RIBBON_BTN_DEFAULT_IMAGE
+IDB_OFFICE2007_STATUSBAR_BACK
+IDB_OFFICE2007_STATUSBAR_BACK_EXT
+IDB_OFFICE2007_STATUSBAR_PANEBORDER
+IDB_OFFICE2007_STATUSBAR_SIZEBOX
+IMAGE
+IMAGE_LARGE
+IMAGE_SMALL
+ImageList_AddMasked
+ImageList_Create
+ImageList_Destroy
+ImageList_Draw
+ImageList_GetIcon
+ImageList_GetIconSize
+ImageList_GetImageCount
+ImageList_GetImageInfo
+ImageList_LoadImageA
+ImageList_Remove
+ImageList_ReplaceIcon
+ImagesColor
+Incorrect filename.
+INFO - Show BIOS Information.
+Input File Mode.
+It is also highly recommended to verify that you have a backup of the BitLocker Recovery Key
+It is also highly recommended to verify that you have a backup of the BitLocker Recovery Key 
+j\???-?)%?1g#?YgP?0BIN??b?j??
+LegalCopyright
+LoadImageA
+LoadImageW
+LockFile
+LockWindowUpdate
+LresultFromObject
+MenuCommand
+MFCButton_ImageID
+MFCButton_ImageOnRight
+MFCButton_ImageOnTop
+MFCButton_ImageType
+MFCVSListbox_NewButton
+Mixed,One or more auto-saved documents were found.
+MonitorFromPoint
+MonitorFromWindow
+new-zealand
+Next
+Next Page
+No error occurred.-An unknown error occurred while accessing %1.%Attempted to write to the reading %1.$Attempted to access %1 past its end.&Attempted to read from the writing %1.
+no such file or directory
+NoFileMru
+Note that if you choose to recover the auto-saved documents, you must explicitly save them to overwrite the original documents.  If you choose to not recover the auto-saved versions, they will be deleted.fRecover the auto-saved documents
+On Error Resume Next
+Open the auto-saved versions instead of the explicitly saved versions^Don't recover the auto-saved documents
+operation canceled
+Oprom
+OriginalFilename
+parser log command
+PathFindFileNameA
+PathRemoveFileSpecW
+Please enter the BIOS setup password:
+Please insert a USB flash drive.
+Please restart this device to complete the update.
+read only file system
+Read Password File......
+ReadFile
+Reading BIOS FAIL
+Reading BIOS PASS
+RealChildWindowFromPoint
+Recent File
+RECENT_FILE_LIST
+RECOVERY
+Recovery Mode
+RegisterApplicationRecoveryCallback
+Rom File no any SLP 2.0 Rom Hole.
+Rom File SLP2.0 Rom Hole GUID : 
+ROM??? ?
+RomFile Rom Hole Count : L%02d
+RomFile Rom Hole GUID : 
+RtlPcToFileHeader
+Save As
+Save changes to %1? Failed to create empty document.
+SaveDC
+SELECT * FROM hpqBIntM
+SELECT * FROM Win32_EncryptableVolume
+Select a USB flash drive:
+Select Copy Path
+Set colEncrypt = objWMIService.ExecQuery("SELECT * FROM Win32_EncryptableVolume",,48)
+SetCurrentDirectoryA
+SetEndOfFile
+SetFileInformationByHandleW
+SetFilePointer
+SetFilePointerEx
+SHCreateItemFromParsingName
+shell32.dll,SHExitWindowsEx 1
+shell32.dll,SHExitWindowsEx 2
+SHGetFileInfoA
+SHGetPathFromIDListA
+Show command here.
+Software\Hewlett-Packard\BIOSFLASH
+Software\Microsoft\Windows\CurrentVersion\Policies\Comdlg32
+Software\Microsoft\Windows\CurrentVersion\Policies\Explorer
+Software\Microsoft\Windows\CurrentVersion\Policies\Network
+STATUSBAR
+StatusbarActive
+StatusbarInactive
+StringFileInfo
+Switch
+SysRom no any SLP 2.0 Rom Hole.
+System Rom Hole Count : L%02d
+System Rom Hole GUID : 
+System RomHole = %d, RomFile RomHole = %d
+System SLP2.0 Rom Hole GUID : 
+text file busy
+The BIOS on this computer is protected by a password.
+The BIOS update success.
+The BIOS update was prepared successfully.
+The BIOS you are installing is older than the current version in the system and cannot be executed.
+The BIOS you are trying to install is older than the current version in the unit, it might cause some functional risk if you install it. 
+The file is too large to open.
+The files were copied successfully.
+The recovery flash drive was created successfully.
+There is NO correct UCP tag in this execute file, please make sure using the latest UCP tool to pack the BIOS(s) and other files.
+There is NO ROM file or correct command on this utility, please make sure you import the ROM file and correct command by AMIUCP.
+There is NO UCP filename tag in this execute file, please make sure using the latest AMIUCP to pack the BIOS(s) and other files.
+There is not enough free disk space to complete the System BIOS and Device Firmware update operation. Delete some files to free disk space then retry again.
+There is not HP's ROM file on this utility, please make sure you import the correct ROM file by AMIUCP.
+These are more recently saved than the currently open documents and contain changes that were made before the application closed.2Do you want to recover these auto-saved documents?
+This BIOS update is blocked due to battery level less than 50%. Please plug AC adaptor to continue.
+This BIOS update is blocked on this device.
+This BIOS update is not compatible with this device.
+This command will flash all rom !
+This Image file doesn't match current System design!
+This indicates a bug in your application. It is most likely the result of calling an MSIL-compiled (/clr) function from a native constructor or from DllMain.
+This is an older version of BIOS which is not compatible with your system configuration.
+This is the HP BIOS update and recovery utility.  It can :
+This tool not support current Windows OS version
+This update is for BIOS family %s, version %s.
+This utility will flash the BIOS directly. The device will restart on completion. During flashing, please note the following:
+This utility will prepare the computer to update the Trusted Platform Module (TPM) firmware.
+This Utility will update the BIOS to version 
+This utility will update the BIOS to version %s.
+To allow this utility to suspend BitLocker and continue with the BIOS update, click 'OK'. to abort, click 'Cancel'.
+To Prevent the loss of encrypted user data, cancel this update, decrypt drive encryption, and restart the update.
+too many files open
+too many files open in system
+too_many_files_open
+TOOLBAR_RESETRPROMPT
+U???????dnew????.t]Q?c3??=?8?|??e
+Unexpected file format.O%1
+Unknown command or option : %s
+UnlockFile
+Update
+Update the BIOS on this device.(Requires restart)
+Update the BIOS on this device.(Requires restart).
+update the system BIOS on this device.
+UpdateLayeredWindow
+UpdateWindow
+USB HP_TOOLS partition exist
+USB HP_TOOLS partition not exist
+UsB??
+UsB????IL??t
+Use the last explicitly saved versions of the documents
+VarFileInfo
+Verify that the correct path and file name are given.
+vkUSB|???:??C[????n?8?
+w??`??p??ROm_???7
+Warning: BIOS will do legacy flash.
+WARNING: Windows BitLocker Drive Encryption (BDE) is enabled on your system using TPM security. HP requires that BDE be disabled during a BIOS update to prevent loss of the encryption key.
+We do not recommend flashing your BIOS.
+WindowFromPoint
+Windows BitLocker Drive Encryption (BDE) is enabled on your system using TPM security. HP requires that BDE be suspended temporarily during a BIOS update to prevent loss of the encryption key. It is also highly recommended to verify that you have a backup of the BitLocker Recovery Key before continuing.
+WriteFile
+WritePrivateProfileStringA
+Yt??R?rOm?rKI?!/a ?6?3?^rc"lf]=??Ue??P q
