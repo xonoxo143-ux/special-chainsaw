@@ -1,0 +1,33 @@
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows                              
+-------------------------------------------------------------------------------
+
+  Started : Wednesday, August 5, 2026 4:59:46 PM
+   Source = R:\
+     Dest : D:\a\special-chainsaw\special-chainsaw\probe-output\recovery-vhd\usb-tree\
+
+    Files : *.*
+	    
+  Options : *.* /S /E /DCOPY:DA /COPY:DAT /R:1 /W:1 
+
+------------------------------------------------------------------------------
+
+	  New Dir          0	R:\
+	  New Dir          1	R:\System Volume Information\
+	    New File  		      12	WPSettings.dat
+100%  
+
+------------------------------------------------------------------------------
+
+               Total    Copied   Skipped  Mismatch    FAILED    Extras
+    Dirs :         2         2         0         0         0         0
+   Files :         1         1         0         0         0         0
+   Bytes :        12        12         0         0         0         0
+   Times :   0:00:00   0:00:00                       0:00:00   0:00:00
+
+
+   Speed :               6,000 Bytes/sec.
+   Speed :               0.343 MegaBytes/min.
+   Ended : Wednesday, August 5, 2026 4:59:46 PM
+

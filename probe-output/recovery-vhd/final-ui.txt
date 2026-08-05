@@ -1,0 +1,15 @@
+
+Name                             ControlType      AutomationId ClassName     Enabled Offscreen      X      Y      W      H
+----                             -----------      ------------ ---------     ------- ---------      -      -      -      -
+                                 ControlType.Pane 6001         Static           True     False 164.00 132.00 713.00  32.00
+                                 ControlType.Pane 6002         Static           True     False 181.00 555.00 126.00  34.00
+Back                             ControlType.Pane 3002         Button           True     False 554.00 555.00  75.00  29.00
+Next                             ControlType.Pane 3001         Button          False     False 640.00 555.00  75.00  29.00
+Format                           ControlType.Pane 3005         Button          False     False 629.00 360.00  75.00  29.00
+Refresh                          ControlType.Pane 3006         Button           True     False 719.00 360.00  75.00  29.00
+Cancel                           ControlType.Pane 2            Button           True     False 758.00 555.00  75.00  29.00
+Select a USB flash drive:        ControlType.Pane 3004         Static           True     False 209.00 205.00 300.00  24.00
+                                 ControlType.Pane 3003         SysListView32    True     False 209.00 230.00 600.00 122.00
+                                 ControlType.Pane              SysHeader32     False     False 212.00 233.00 596.00  22.00
+Please insert a USB flash drive. ControlType.Pane 3007         Static           True     False 374.00 425.00 405.00  42.00
+

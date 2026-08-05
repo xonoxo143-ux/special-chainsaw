@@ -1,0 +1,7 @@
+
+Number FriendlyName                  BusType             PartitionStyle OperationalStatus         Size
+------ ------------                  -------             -------------- -----------------         ----
+     2 Msft Virtual Disk             File Backed Virtual MBR            Online               268435456
+     1 Microsoft NVMe Direct Disk v2 NVMe                GPT            Online            236223201280
+     0 Virtual_Disk NVME Premium     NVMe                GPT            Online            161061273600
+
