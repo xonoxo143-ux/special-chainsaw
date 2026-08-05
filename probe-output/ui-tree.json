@@ -1,0 +1,110 @@
+[
+  {
+    "Name": "update the system BIOS on this device.\r\n\r\ncreate a recovery USB flash drive to use on device with corrupted BIOS.\r\n\r\ncopy the BIOS image in order to use it on other devices.",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "1005",
+    "ClassName": "Static",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 277.0,
+    "Y": 283.0,
+    "W": 578.0,
+    "H": 189.0
+  },
+  {
+    "Name": "",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "6001",
+    "ClassName": "Static",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 164.0,
+    "Y": 132.0,
+    "W": 713.0,
+    "H": 32.0
+  },
+  {
+    "Name": "",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "6002",
+    "ClassName": "Static",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 181.0,
+    "Y": 555.0,
+    "W": 126.0,
+    "H": 34.0
+  },
+  {
+    "Name": "Next",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "1002",
+    "ClassName": "Button",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 640.0,
+    "Y": 555.0,
+    "W": 75.0,
+    "H": 29.0
+  },
+  {
+    "Name": "Cancel",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "2",
+    "ClassName": "Button",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 758.0,
+    "Y": 555.0,
+    "W": 75.0,
+    "H": 29.0
+  },
+  {
+    "Name": "This is the HP BIOS update and recovery utility.  It can :",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "1004",
+    "ClassName": "Static",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 229.0,
+    "Y": 230.0,
+    "W": 420.0,
+    "H": 21.0
+  },
+  {
+    "Name": "",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "1006",
+    "ClassName": "Static",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 248.0,
+    "Y": 286.0,
+    "W": 12.0,
+    "H": 13.0
+  },
+  {
+    "Name": "",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "1007",
+    "ClassName": "Static",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 248.0,
+    "Y": 322.0,
+    "W": 12.0,
+    "H": 13.0
+  },
+  {
+    "Name": "",
+    "ControlType": "ControlType.Pane",
+    "AutomationId": "1008",
+    "ClassName": "Static",
+    "Enabled": true,
+    "Offscreen": false,
+    "X": 248.0,
+    "Y": 358.0,
+    "W": 12.0,
+    "H": 13.0
+  }
+]
