@@ -1,0 +1,164 @@
+name: HP Create Recovery USB Removable Probe
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  create-recovery:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 1
+
+      - name: Check completion
+        id: check
+        shell: pwsh
+        run: |
+          if (Test-Path probe-output/recovery-removable/complete.txt) { 'skip=true' >> $env:GITHUB_OUTPUT } else { 'skip=false' >> $env:GITHUB_OUTPUT }
+
+      - name: Install ImDisk Toolkit
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          choco install imdisk-toolkit -y --no-progress
+          $paths = @(
+            'C:\Windows\System32\imdisk.exe',
+            'C:\Program Files\ImDisk\imdisk.exe',
+            'C:\Program Files (x86)\ImDisk\imdisk.exe'
+          )
+          $found = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $found) { $found = (Get-Command imdisk.exe -ErrorAction SilentlyContinue).Source }
+          if (-not $found) { throw 'imdisk.exe was not installed' }
+          "IMDISK=$found" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Create real removable recovery image
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force probe-output/recovery-removable, removable-work, removable-work/outer | Out-Null
+          $raw = Join-Path $PWD 'removable-work/HP-86F3-F58-Official-Recovery.raw'
+          fsutil file createnew $raw 268435456 | Out-File probe-output/recovery-removable/fsutil.txt
+          & $env:IMDISK -a -t file -f $raw -s 256M -m R: -o rem
+          Start-Sleep -Seconds 3
+          Format-Volume -DriveLetter R -FileSystem FAT32 -NewFileSystemLabel HPBIOS -Confirm:$false -Force | Format-List | Out-File probe-output/recovery-removable/format.txt
+
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class DriveTypeCheck {
+            [DllImport("kernel32.dll", CharSet=CharSet.Auto)]
+            public static extern uint GetDriveType(string rootPathName);
+          }
+          '@
+          $driveType = [DriveTypeCheck]::GetDriveType('R:\')
+          "GetDriveType(R:)=$driveType (2 means removable)" | Out-File probe-output/recovery-removable/drive-type.txt
+          Get-Volume -DriveLetter R | Format-List * | Out-File probe-output/recovery-removable/volume-before.txt -Width 700
+
+          Invoke-WebRequest 'https://ftp.hp.com/pub/softpaq/sp172501-173000/sp172733.exe' -OutFile removable-work/sp172733.exe
+          & 'C:\Program Files\7-Zip\7z.exe' x -y '-oremovable-work\outer' removable-work\sp172733.exe | Out-Null
+          $exe = (Get-ChildItem removable-work\outer -Recurse -Filter '086F3F58.EXE' | Select-Object -First 1).FullName
+          if (-not $exe) { throw '086F3F58.EXE not found' }
+
+          Add-Type -AssemblyName UIAutomationClient
+          Add-Type -AssemblyName UIAutomationTypes
+          Add-Type @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class NativeMouseOfficial {
+            [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+            [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
+            [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+          }
+          '@
+          function Root($p) {
+            $p.Refresh()
+            return [System.Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+          }
+          function Find-ByName($root, [string]$name) {
+            $c = New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $name)
+            return $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $c)
+          }
+          function Click-El($el, $hwnd) {
+            if (-not $el) { throw 'Element not found' }
+            $r = $el.Current.BoundingRectangle
+            $x = [int]($r.X + $r.Width / 2)
+            $y = [int]($r.Y + $r.Height / 2)
+            [NativeMouseOfficial]::SetForegroundWindow($hwnd) | Out-Null
+            Start-Sleep -Milliseconds 350
+            [NativeMouseOfficial]::SetCursorPos($x,$y) | Out-Null
+            [NativeMouseOfficial]::mouse_event(0x0002,0,0,0,[UIntPtr]::Zero)
+            [NativeMouseOfficial]::mouse_event(0x0004,0,0,0,[UIntPtr]::Zero)
+            Start-Sleep -Seconds 2
+          }
+          function Capture-UI($p, [string]$path) {
+            $root = Root $p
+            $rows = @()
+            if ($root) {
+              $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+              foreach ($el in $all) {
+                $c = $el.Current
+                $rows += [pscustomobject]@{Name=$c.Name; ControlType=$c.ControlType.ProgrammaticName; AutomationId=$c.AutomationId; ClassName=$c.ClassName; Enabled=$c.IsEnabled; Offscreen=$c.IsOffscreen; X=$c.BoundingRectangle.X; Y=$c.BoundingRectangle.Y; W=$c.BoundingRectangle.Width; H=$c.BoundingRectangle.Height}
+              }
+            }
+            $rows | Format-Table -AutoSize | Out-File $path -Width 1000
+          }
+
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          $root = Root $p
+          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
+          $root = Root $p
+          Click-El (Find-ByName $root 'Create Recovery USB flash drive') $p.MainWindowHandle
+          $root = Root $p
+          Click-El (Find-ByName $root 'Next') $p.MainWindowHandle
+          Start-Sleep -Seconds 5
+          Capture-UI $p 'probe-output/recovery-removable/drive-screen.txt'
+
+          $root = Root $p
+          $all = $root.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
+          $candidate = $null
+          foreach ($el in $all) {
+            $n = $el.Current.Name
+            if ($n -match '(?i)R:|HPBIOS|256|MB') { $candidate = $el; break }
+          }
+          if (-not $candidate) { throw 'HP utility did not list the removable R: drive' }
+          Click-El $candidate $p.MainWindowHandle
+          $root = Root $p
+          $next = Find-ByName $root 'Next'
+          if (-not $next -or -not $next.Current.IsEnabled) { throw 'Next stayed disabled after selecting removable drive' }
+          Click-El $next $p.MainWindowHandle
+          Start-Sleep -Seconds 45
+          Capture-UI $p 'probe-output/recovery-removable/final-ui.txt'
+
+          Get-ChildItem R:\ -Recurse -Force -ErrorAction SilentlyContinue | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output/recovery-removable/files.txt -Width 1000
+          Get-Volume -DriveLetter R | Format-List * | Out-File probe-output/recovery-removable/volume-after.txt -Width 700
+          robocopy R:\ probe-output\recovery-removable\usb-tree /E /COPY:DAT /R:1 /W:1 | Out-File probe-output/recovery-removable/robocopy.txt
+          if ($LASTEXITCODE -ge 8) { throw "Robocopy failed with code $LASTEXITCODE" }
+          $global:LASTEXITCODE = 0
+
+          Get-Process 086F3F58 -ErrorAction SilentlyContinue | Stop-Process -Force
+          & $env:IMDISK -D -m R:
+          Start-Sleep -Seconds 3
+          & 'C:\Program Files\7-Zip\7z.exe' a -txz -mx=9 'probe-output\recovery-removable\HP-86F3-F58-Official-Recovery.raw.xz' $raw | Out-File probe-output/recovery-removable/compress.txt
+          Get-FileHash $raw -Algorithm SHA256 | Format-List | Out-File probe-output/recovery-removable/raw.sha256.txt
+          Get-FileHash 'probe-output\recovery-removable\HP-86F3-F58-Official-Recovery.raw.xz' -Algorithm SHA256 | Format-List | Out-File probe-output/recovery-removable/xz.sha256.txt
+          'complete' | Out-File probe-output/recovery-removable/complete.txt
+
+      - name: Commit generated recovery media
+        if: steps.check.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add probe-output/recovery-removable
+          git commit -m 'Generate HP recovery media through official USB workflow'
+          git push origin HEAD:${{ github.head_ref }}
