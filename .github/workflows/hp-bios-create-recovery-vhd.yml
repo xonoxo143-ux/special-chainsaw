@@ -128,6 +128,7 @@ jobs:
           Get-ChildItem R:\ -Recurse -Force -ErrorAction SilentlyContinue | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize | Out-File probe-output/recovery-vhd/files.txt -Width 900
           if (Test-Path R:\) {
             robocopy R:\ probe-output\recovery-vhd\usb-tree /E /COPY:DAT /R:1 /W:1 | Out-File probe-output/recovery-vhd/robocopy.txt
+            if ($LASTEXITCODE -lt 8) { $global:LASTEXITCODE = 0 } else { throw "Robocopy failed with code $LASTEXITCODE" }
           }
           Get-Process 086F3F58 -ErrorAction SilentlyContinue | Stop-Process -Force
           'complete' | Out-File probe-output/recovery-vhd/complete.txt
