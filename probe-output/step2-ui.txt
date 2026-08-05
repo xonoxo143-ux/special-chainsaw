@@ -1,0 +1,17 @@
+
+Name                                                                     ControlType      AutomationId ClassName Enabled Offscreen      X      Y      W     H
+----                                                                     -----------      ------------ --------- ------- ---------      -      -      -     -
+                                                                         ControlType.Pane 6001         Static       True     False 164.00 132.00 713.00 32.00
+                                                                         ControlType.Pane 6002         Static       True     False 181.00 555.00 126.00 34.00
+Back                                                                     ControlType.Pane 1001         Button       True     False 554.00 555.00  75.00 29.00
+Next                                                                     ControlType.Pane 1002         Button       True     False 640.00 555.00  75.00 29.00
+Cancel                                                                   ControlType.Pane 2            Button       True     False 758.00 555.00  75.00 29.00
+This utility is not match with your platform.                            ControlType.Pane 1009         Static       True     False 209.00 197.00 480.00 24.00
+Update                                                                   ControlType.Pane 1010         Button      False     False 209.00 303.00 600.00 20.00
+Create Recovery USB flash drive                                          ControlType.Pane 1011         Button       True     False 209.00 368.00 600.00 20.00
+Copy                                                                     ControlType.Pane 1012         Button       True     False 209.00 433.00 600.00 20.00
+This BIOS update is not compatible with this device.                     ControlType.Pane 1013         Static       True     False 227.00 322.00 600.00 39.00
+Create an HP BIOS Recovery USB flash drive to recover another HP device. ControlType.Pane 1014         Static       True     False 227.00 387.00 600.00 20.00
+Copy BIOS image to any file location. (Advanced users)                   ControlType.Pane 1015         Static       True     False 227.00 452.00 600.00 20.00
+Please select:                                                           ControlType.Pane 1018         Static       True     False 209.00 262.00 420.00 21.00
+
