@@ -36,10 +36,11 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            wine64 wine32 xvfb xdotool wmctrl p7zip-full dosfstools mtools \
-            util-linux imagemagick tesseract-ocr ca-certificates wget
+            wine wine64 wine32 xvfb xdotool wmctrl p7zip-full dosfstools mtools \
+            util-linux imagemagick tesseract-ocr ca-certificates wget xz-utils
 
       - name: Run official recovery-media path
+        id: official
         if: steps.check.outputs.skip != 'true'
         shell: bash
         run: |
@@ -47,8 +48,9 @@ jobs:
           OUT="$PWD/probe-output/f41-wine-v2"
           WORK="$PWD/f41-wine-v2-work"
           PREFIX="$WORK/wineprefix"
-          RAW="$WORK/HP-86F3-F41-official.raw"
+          RAW="$WORK/HP-86F3-F41-Official-Recovery.img"
           MNT="$WORK/usb"
+          rm -rf "$OUT" "$WORK"
           mkdir -p "$OUT" "$WORK/outer" "$MNT"
 
           cleanup() {
@@ -59,6 +61,9 @@ jobs:
             [[ -n "${XVFB_PID:-}" ]] && kill "$XVFB_PID" >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
+
+          type -a wine wineboot wineserver winepath | tee "$OUT/wine-commands.txt"
+          wine --version | tee "$OUT/wine-version.txt"
 
           wget -nv 'https://ftp.hp.com/pub/softpaq/sp141501-142000/sp141980.exe' -O "$WORK/sp141980.exe" 2>&1 | tee "$OUT/download.txt"
           sha256sum "$WORK/sp141980.exe" | tee "$OUT/sp141980.sha256"
@@ -156,6 +161,7 @@ jobs:
 
           sync
           find "$MNT" -maxdepth 10 -printf '%y\t%P\t%s\n' | sort | tee "$OUT/usb-tree.txt"
+          find "$MNT" -type f -print0 | sort -z | xargs -0 -r sha256sum | tee "$OUT/usb-files.sha256"
           sudo fsck.vfat -vn "$PART" | tee "$OUT/fsck.txt" || true
           sudo umount "$MNT"
           sudo sfdisk -d "$RAW" | tee "$OUT/partition-table.txt"
@@ -166,16 +172,29 @@ jobs:
             cp "$RAW" "$OUT/HP-86F3-F41-Official-Recovery.img"
             sha256sum "$OUT/HP-86F3-F41-Official-Recovery.img" > "$OUT/HP-86F3-F41-Official-Recovery.img.sha256"
             echo 'HP utility reported success and wrote signed 86F3 recovery files.' > "$OUT/success.txt"
+            echo 'success=true' >> "$GITHUB_OUTPUT"
           else
             echo 'No verified HP success state; image withheld.' | tee "$OUT/failure.txt"
+            echo 'success=false' >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Commit evidence or verified image
+      - name: Upload verified raw recovery image
+        if: steps.official.outputs.success == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: HP-86F3-F41-Official-Recovery
+          path: probe-output/f41-wine-v2/HP-86F3-F41-Official-Recovery.img
+          compression-level: 6
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Commit evidence
         if: always() && steps.check.outputs.skip != 'true'
         shell: bash
         run: |
+          rm -f probe-output/f41-wine-v2/HP-86F3-F41-Official-Recovery.img
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add probe-output/f41-wine-v2
-          git commit -m 'Retry HP F.41 official USB workflow under Wine' || exit 0
+          git commit -m 'Run HP F.41 official USB workflow under Wine' || exit 0
           git push origin HEAD:${{ github.head_ref }}
