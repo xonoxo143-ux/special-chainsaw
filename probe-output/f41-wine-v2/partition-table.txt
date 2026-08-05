@@ -1,5 +1,5 @@
 label: dos
-label-id: 0x94ac3835
+label-id: 0xbd9a626a
 device: /home/runner/work/special-chainsaw/special-chainsaw/f41-wine-v2-work/HP-86F3-F41-Official-Recovery.img
 unit: sectors
 sector-size: 512
